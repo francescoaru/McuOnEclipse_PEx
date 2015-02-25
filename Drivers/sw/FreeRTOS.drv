@@ -122,26 +122,31 @@
 
 /* Macro for shell support */
 %ifdef ParseCommand
-#define %'ModuleName'%.PARSE_COMMAND_ENABLED  1  /* set to 1 if method ParseCommand() is present, 0 otherwise */
+#define %'ModuleName'%.PARSE_COMMAND_ENABLED                     %>45 1  /* set to 1 if method ParseCommand() is present, 0 otherwise */
 %else
-#define %'ModuleName'%.PARSE_COMMAND_ENABLED  0 /* set to 1 if method ParseCommand() is present, 0 otherwise */
+#define %'ModuleName'%.PARSE_COMMAND_ENABLED                     %>45 0 /* set to 1 if method ParseCommand() is present, 0 otherwise */
 %endif %- ParseCommand
+%if defined(GenerateRTOSPExMacros) & %GenerateRTOSPExMacros='no'
+#define %'ModuleName'%.GENERATE_PEX_RTOS_MACROS                  %>45 0  /* set to 1 to generate the RTOS macros PEX_RTOS_INIT() and PEX_RTOS_START() */
+%else
+#define %'ModuleName'%.GENERATE_PEX_RTOS_MACROS                  %>45 1  /* set to 1 to generate the RTOS macros PEX_RTOS_INIT() and PEX_RTOS_START() */
+%endif
 
 /* Macros used by Processor Expert */
-#define PEX_RTOS_INIT() /* macro called from PE_low_level_init() */ \
-%if %DisabledInterruptsInStartup='yes'
+#if %'ModuleName'%.GENERATE_PEX_RTOS_MACROS
+  #define PEX_RTOS_INIT() /* macro called from PE_low_level_init() */ \
+  %if %DisabledInterruptsInStartup='yes'
                                                                  %>>portDISABLE_ALL_INTERRUPTS(); /* disable all interrupts, they get enabled in vStartScheduler() */ \
-%else
+  %else
                                                                  %>>/* RTOS adapter is configured not to disable interrupts */ \
-%endif
-%if %UseTraceHooksGroup='yes'
+  %endif
+  %if %UseTraceHooksGroup='yes'
                                                                  %>>%@FRTrace@'ModuleName'%.vTraceInitTraceData();/* initialize trace first, as needed by RTOS functions */
-%else
+  %else
                                                                  %>>/* not Trace Hooks, nothing to do */
-%endif
-
-#define PEX_RTOS_START()                                         %>>%'ModuleName'%.%vTaskStartScheduler()
-
+  %endif
+  #define PEX_RTOS_START()                                       %>>%'ModuleName'%.%vTaskStartScheduler()
+#endif
 /* macro to identify CPU: 0 for M0+ and 4 for M4 */
 %if %CPUDB_prph_has_feature(CPU,ARM_CORTEX_M0P) = 'yes' %- Note: for IAR this is defined in portasm.s too!
 #define FREERTOS_CPU_CORTEX_M                                    %>>0 /* Cortex M0+ core */
@@ -1434,6 +1439,81 @@ void %'ModuleName'%.%Init(void);
 
 %endif %- xTimerPendFunctionCallFromISR
 %-BW_METHOD_END xTimerPendFunctionCallFromISR
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotifyGive
+%ifdef xTaskNotifyGive
+#define %'ModuleName'%.%xTaskNotifyGive(xTaskToNotify) \
+  xTaskNotifyGive(xTaskToNotify) \
+%define! ParxTaskToNotify
+%define! RetVal
+%include Common\FreeRTOSxTaskNotifyGive.Inc
+
+%endif %- xTaskNotifyGive
+%-BW_METHOD_END xTaskNotifyGive
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN ulTaskNotifyTake
+%ifdef ulTaskNotifyTake
+#define %'ModuleName'%.%ulTaskNotifyTake(xClearCountOnExit, xTicksToWait) \
+  ulTaskNotifyTake(xClearCountOnExit, xTicksToWait)
+%define! ParxClearCountOnExit
+%define! ParxTicksToWait
+%define! RetVal
+%include Common\FreeRTOSulTaskNotifyTake.Inc
+
+%endif %- ulTaskNotifyTake
+%-BW_METHOD_END ulTaskNotifyTake
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN vTaskNotifyGiveFromISR
+%ifdef vTaskNotifyGiveFromISR
+#define %'ModuleName'%.%vTaskNotifyGiveFromISR(xTaskToNotify, pxHigherPriorityTaskWoken) \
+  vTaskNotifyGiveFromISR(xTaskToNotify, pxHigherPriorityTaskWoken)
+%define! ParxTaskToNotify
+%define! ParpxHigherPriorityTaskWoken
+%include Common\FreeRTOSvTaskNotifyGiveFromISR.Inc
+
+%endif %- vTaskNotifyGiveFromISR
+%-BW_METHOD_END vTaskNotifyGiveFromISR
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotify
+%ifdef xTaskNotify
+#define %'ModuleName'%.%xTaskNotify(xTaskToNotify, ulValue, eAction) \
+  xTaskNotify(xTaskToNotify, ulValue, eAction)
+%define! ParxTaskToNotify
+%define! ParulValue
+%define! PareAction
+%define! RetVal
+%include Common\FreeRTOSxTaskNotify.Inc
+
+%endif %- xTaskNotify
+%-BW_METHOD_END xTaskNotify
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotifyFromISR
+%ifdef xTaskNotifyFromISR
+#define %'ModuleName'%.%xTaskNotifyFromISR(xTaskToNotify, ulValue, eAction, pxHigherPriorityTaskWoken) \
+  xTaskNotifyFromISR(xTaskToNotify, ulValue, eAction, pxHigherPriorityTaskWoken)
+%define! ParxTaskToNotify
+%define! ParulValue
+%define! PareAction
+%define! ParpxHigherPriorityTaskWoken
+%define! RetVal
+%include Common\FreeRTOSxTaskNotifyFromISR.Inc
+
+%endif %- xTaskNotifyFromISR
+%-BW_METHOD_END xTaskNotifyFromISR
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotifyWait
+%ifdef xTaskNotifyWait
+#define %'ModuleName'%.%xTaskNotifyWait(ulBitsToClearOnEntry, ulBitsToClearOnExit, pulNotificationValue, xTicksToWait) \
+  xTaskNotifyWait(ulBitsToClearOnEntry, ulBitsToClearOnExit, pulNotificationValue, xTicksToWait)
+%define! ParulBitsToClearOnEntry
+%define! ParulBitsToClearOnExit
+%define! ParpulNotificationValue
+%define! ParxTicksToWait
+%define! RetVal
+%include Common\FreeRTOSxTaskNotifyWait.Inc
+
+%endif %- xTaskNotifyWait
+%-BW_METHOD_END xTaskNotifyWait
 %-BW_DEFINITION_END
 /* END %ModuleName. */
 
@@ -1565,7 +1645,7 @@ static uint8_t PrintStatus(const %@Shell@'ModuleName'%.StdIOType *io) {
   %@Shell@'ModuleName'%.SendStatusStr((unsigned char*)"%'ModuleName'", (unsigned char*)"\r\n", io->stdOut);
 
 #if configUSE_TRACE_FACILITY /* FreeRTOS trace feature enabled */
-  %@Shell@'ModuleName'%.SendStr((unsigned char*)"TASK LIST:\r\nName\t\tStatus\tPrio\tStack\tTCB#\r\n", io->stdOut);
+  %@Shell@'ModuleName'%.SendStr((unsigned char*)"TASK LIST:\r\nName\t\tState\tPrio\tStack\tTCB#\r\n", io->stdOut);
   %@Shell@'ModuleName'%.SendStr((unsigned char*)%@Shell@'ModuleName'%.DASH_LINE, io->stdOut);
   %@Shell@'ModuleName'%.SendStr((unsigned char*)"\r\n", io->stdOut);
   /* task list and status */
@@ -1589,7 +1669,7 @@ static uint8_t PrintStatus(const %@Shell@'ModuleName'%.StdIOType *io) {
 #endif
 #if ((configGENERATE_RUN_TIME_STATS==1) && (configUSE_STATS_FORMATTING_FUNCTIONS==1))
   %@Shell@'ModuleName'%.SendStr((unsigned char*)%@Shell@'ModuleName'%.DASH_LINE, io->stdOut);
-  %@Shell@'ModuleName'%.SendStr((unsigned char*)"\r\nRTOS RUN-TIME STATISTICS:\r\nName\tTime (ms)\t%%Time\r\n", io->stdOut);
+  %@Shell@'ModuleName'%.SendStr((unsigned char*)"\r\nRTOS RUN-TIME STATISTICS:\r\nName\t\tTime\t\t%%Time\r\n", io->stdOut);
   %@Shell@'ModuleName'%.SendStr((unsigned char*)%@Shell@'ModuleName'%.DASH_LINE, io->stdOut);
   %@Shell@'ModuleName'%.SendStr((unsigned char*)"\r\n", io->stdOut);
   /* task list and status */
@@ -3374,6 +3454,105 @@ BaseType_t %'ModuleName'%.%xTimerPendFunctionCallFromISR(PendedFunction_t xFunct
 
 %endif %- xTimerPendFunctionCallFromISR
 %-BW_METHOD_END xTimerPendFunctionCallFromISR
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotifyGive
+%ifdef xTaskNotifyGive
+%define! ParxTaskToNotify
+%define! RetVal
+%include Common\FreeRTOSxTaskNotifyGive.Inc
+/*
+BaseType_t %'ModuleName'%.%xTaskNotifyGive(TaskHandle_t xTaskToNotify)
+{
+  *** Implemented as macro in the header file %'ModuleName'.h
+}
+*/
+
+%endif %- xTaskNotifyGive
+%-BW_METHOD_END xTaskNotifyGive
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN ulTaskNotifyTake
+%ifdef ulTaskNotifyTake
+%define! ParxClearCountOnExit
+%define! ParxTicksToWait
+%define! RetVal
+%include Common\FreeRTOSulTaskNotifyTake.Inc
+/*
+uint32_t %'ModuleName'%.%ulTaskNotifyTake(BaseType_t xClearCountOnExit, TickType_t xTicksToWait)
+{
+  *** Implemented as macro in the header file %'ModuleName'.h
+}
+*/
+
+%endif %- ulTaskNotifyTake
+%-BW_METHOD_END ulTaskNotifyTake
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN vTaskNotifyGiveFromISR
+%ifdef vTaskNotifyGiveFromISR
+%define! ParxTaskToNotify
+%define! ParpxHigherPriorityTaskWoken
+%include Common\FreeRTOSvTaskNotifyGiveFromISR.Inc
+/*
+void %'ModuleName'%.%vTaskNotifyGiveFromISR(TaskHandle_t xTaskToNotify, BaseType_t *pxHigherPriorityTaskWoken)
+{
+  *** Implemented as macro in the header file %'ModuleName'.h
+}
+*/
+
+%endif %- vTaskNotifyGiveFromISR
+%-BW_METHOD_END vTaskNotifyGiveFromISR
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotify
+%ifdef xTaskNotify
+%define! ParxTaskToNotify
+%define! ParulValue
+%define! PareAction
+%define! RetVal
+%include Common\FreeRTOSxTaskNotify.Inc
+/*
+BaseType_t %'ModuleName'%.%xTaskNotify(TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction)
+{
+  *** Implemented as macro in the header file %'ModuleName'.h
+}
+*/
+
+%endif %- xTaskNotify
+%-BW_METHOD_END xTaskNotify
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotifyFromISR
+%ifdef xTaskNotifyFromISR
+%define! ParxTaskToNotify
+%define! ParulValue
+%define! PareAction
+%define! ParpxHigherPriorityTaskWoken
+%define! RetVal
+%include Common\FreeRTOSxTaskNotifyFromISR.Inc
+/*
+BaseType_t %'ModuleName'%.%xTaskNotifyFromISR(TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, BaseType_t *pxHigherPriorityTaskWoken)
+{
+  *** Implemented as macro in the header file %'ModuleName'.h
+}
+*/
+
+%endif %- xTaskNotifyFromISR
+%-BW_METHOD_END xTaskNotifyFromISR
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN xTaskNotifyWait
+%ifdef xTaskNotifyWait
+%define! ParulBitsToClearOnEntry
+%define! ParulBitsToClearOnExit
+%define! ParpulNotificationValue
+%define! ParxTicksToWait
+%define! RetVal
+%include Common\FreeRTOSxTaskNotifyWait.Inc
+/*
+BaseType_t %'ModuleName'%.%xTaskNotifyWait(uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClearOnExit, uint32_t *pulNotificationValue, TickType_t xTicksToWait)
+{
+  *** Implemented as macro in the header file %'ModuleName'.h
+}
+*/
+
+%endif %- xTaskNotifyWait
+%-BW_METHOD_END xTaskNotifyWait
 %-BW_IMPLEMENT_END
 /* END %ModuleName. */
 

@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0rc1 - Copyright (C) 2014 Real Time Engineers Ltd.
+    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -10,26 +10,17 @@
     the terms of the GNU General Public License (version 2) as published by the
     Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
 
+	***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
+	***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
     link: http://www.freertos.org/a00114.html
-
-    1 tab == 4 spaces!
-
-    ***************************************************************************
-     *                                                                       *
-     *    Having a problem?  Start by reading the FAQ "My application does   *
-     *    not run, what could be wrong?".  Have you defined configASSERT()?  *
-     *                                                                       *
-     *    http://www.FreeRTOS.org/FAQHelp.html                               *
-     *                                                                       *
-    ***************************************************************************
 
     ***************************************************************************
      *                                                                       *
@@ -45,35 +36,18 @@
      *                                                                       *
     ***************************************************************************
 
-    ***************************************************************************
-     *                                                                       *
-     *   Investing in training allows your team to be as productive as       *
-     *   possible as early as possible, lowering your overall development    *
-     *   cost, and enabling you to bring a more robust product to market     *
-     *   earlier than would otherwise be possible.  Richard Barry is both    *
-     *   the architect and key author of FreeRTOS, and so also the world's   *
-     *   leading authority on what is the world's most popular real time     *
-     *   kernel for deeply embedded MCU designs.  Obtaining your training    *
-     *   from Richard ensures your team will gain directly from his in-depth *
-     *   product knowledge and years of usage experience.  Contact Real Time *
-     *   Engineers Ltd to enquire about the FreeRTOS Masterclass, presented  *
-     *   by Richard Barry:  http://www.FreeRTOS.org/contact
-     *                                                                       *
-    ***************************************************************************
+    http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+	the FAQ page "My application does not run, what could be wrong?".  Have you
+	defined configASSERT()?
 
-    ***************************************************************************
-     *                                                                       *
-     *    You are receiving this top quality software for free.  Please play *
-     *    fair and reciprocate by reporting any suspected issues and         *
-     *    participating in the community forum:                              *
-     *    http://www.FreeRTOS.org/support                                    *
-     *                                                                       *
-     *    Thank you!                                                         *
-     *                                                                       *
-    ***************************************************************************
+	http://www.FreeRTOS.org/support - In return for receiving this top quality
+	embedded software for free we request you assist our global community by
+	participating in the support forum.
 
-    http://www.FreeRTOS.org - Documentation, books, training, latest versions,
-    license and Real Time Engineers Ltd. contact details.
+	http://www.FreeRTOS.org/training - Investing in training allows your team to
+	be as productive as possible as early as possible.  Now you can receive
+	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+	Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -82,7 +56,7 @@
     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
 
-    http://www.OpenRTOS.com - Real Time Engineers ltd license FreeRTOS to High
+    http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
     licenses offer ticketed support, indemnification and commercial middleware.
 
@@ -92,6 +66,7 @@
 
     1 tab == 4 spaces!
 */
+
 #ifndef PORTMACRO_H
 #define PORTMACRO_H
 
@@ -244,7 +219,7 @@ extern void vPortExitCritical(void);
 #define portDISABLE_INTERRUPTS()             __asm("sei")
 #define portENTER_CRITICAL()                 vPortEnterCritical()
 #define portEXIT_CRITICAL()                  vPortExitCritical()
-%elif (CPUfamily = "Kinetis") & ((%Compiler == "GNUC")|(%Compiler = "ARM_CC"))
+%elif (CPUfamily = "Kinetis")
 #if configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* Cortex M4 */
   #if (configCOMPILER==configCOMPILER_ARM_KEIL)
     __asm uint32_t ulPortSetInterruptMask(void);
@@ -279,12 +254,17 @@ extern void vPortExitCritical(void);
 	   : /* no input */        \
 	   :"r0" /* clobber */     \
       )
+  #elif configCOMPILER==configCOMPILER_ARM_IAR
+    void vPortSetInterruptMask(void); /* prototype, implemented in portasm.s */
+    void vPortClearInterruptMask(void); /* prototype, implemented in portasm.s */
+    #define portSET_INTERRUPT_MASK()    vPortSetInterruptMask()
+    #define portCLEAR_INTERRUPT_MASK()  vPortClearInterruptMask()
   #endif
-#else
+#else /* Cortex-M0+ */
   #if configCOMPILER==configCOMPILER_ARM_KEIL
     #define portSET_INTERRUPT_MASK()              __disable_irq()
     #define portCLEAR_INTERRUPT_MASK()            __enable_irq()
-  #else
+  #else /* IAR, CW ARM or GNU ARM gcc */
     #define portSET_INTERRUPT_MASK()              __asm volatile("cpsid i")
     #define portCLEAR_INTERRUPT_MASK()            __asm volatile("cpsie i")
   #endif
@@ -298,7 +278,7 @@ extern void vPortExitCritical(void);
 
 #if configCOMPILER==configCOMPILER_ARM_KEIL
   #define portDISABLE_ALL_INTERRUPTS()   __disable_irq()
-#else
+#else /* IAR, CW ARM or GNU ARM gcc */
   #define portDISABLE_ALL_INTERRUPTS()   __asm volatile("cpsid i")
 #endif
 #define portDISABLE_INTERRUPTS()   portSET_INTERRUPT_MASK()
@@ -309,26 +289,6 @@ extern void vPortExitCritical(void);
 /* There are an uneven number of items on the initial stack, so
 portALIGNMENT_ASSERT_pxCurrentTCB() will trigger false positive asserts. */
 #define portALIGNMENT_ASSERT_pxCurrentTCB (void)
-
-%elif (CPUfamily = "Kinetis")
-extern void vPortSetInterruptMask(void);
-extern void vPortClearInterruptMask(void);
-extern void vPortEnterCritical(void);
-extern void vPortExitCritical(void);
-#if configCOMPILER==configCOMPILER_IAR
-/* \todo: !!! IAR does not allow msr BASEPRI, r0 in vPortSetInterruptMask()? */
-#define portDISABLE_ALL_INTERRUPTS()         __asm volatile( "cpsid i" )
-#define portDISABLE_INTERRUPTS()             __asm volatile( "cpsid i" )
-#define portENABLE_INTERRUPTS()              __asm volatile( "cpsie i" )
-#else
-#define portDISABLE_ALL_INTERRUPTS()         __asm volatile( "cpsid i" )
-#define portDISABLE_INTERRUPTS()             vPortSetInterruptMask()
-#define portENABLE_INTERRUPTS()              vPortClearInterruptMask()
-#endif
-#define portENTER_CRITICAL()                 vPortEnterCritical()
-#define portEXIT_CRITICAL()                  vPortExitCritical()
-#define portSET_INTERRUPT_MASK_FROM_ISR()    0;vPortSetInterruptMask()
-#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x) vPortClearInterruptMask();(void)x
 %elif (CPUfamily = "56800")
 extern void vPortEnterCritical(void);
 extern void vPortExitCritical(void);
@@ -453,8 +413,12 @@ extern void vPortYieldFromISR(void);
 /*-----------------------------------------------------------*/
 
 #ifdef configASSERT
-	void vPortValidateInterruptPriority( void );
-	#define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() 	vPortValidateInterruptPriority()
+#if 0 /* NYI */ && configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* ARM M4(F) core */
+  void vPortValidateInterruptPriority( void );
+  #define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() 	vPortValidateInterruptPriority()
+#else
+  #define portASSERT_IF_INTERRUPT_PRIORITY_INVALID()
+#endif
 #endif
 
 %elif (CPUfamily = "56800")
@@ -738,6 +702,8 @@ void vPortYieldHandler(void);
 BaseType_t configUSE_TICKLESS_IDLE_DECISION_HOOK_NAME(void); /* return pdTRUE if RTOS can enter tickless idle mode, pdFALSE otherwise */
 #endif
 
+void prvTaskExitError(void);
+  /* handler to catch task exit errors */
 
 
 #ifdef __cplusplus

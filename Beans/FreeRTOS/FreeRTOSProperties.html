@@ -255,6 +255,10 @@ The following items are available only if the group is enabled (the value is "En
 
   <ul>
     <li>
+    <a name="KinetisSDKenabled">
+    <b>Kinetis SDK</b></a> - This will configure the configPEX_KINETIS_SDK macro in FreeRTOSConfig.h
+    </li>
+    <li>
     <a name="RTOSSrcFolderName">
     <b>Source Folder</b></a> - RTOS source files are generated into this sub folder name. The name can be empty.
     </li>
@@ -265,6 +269,10 @@ The following items are available only if the group is enabled (the value is "En
     <li>
     <a name="RTOSPortFolderName">
     <b>Port Folder</b></a> - RTOS port depending sources files are generated into this sub folder name. The name can be empty.
+    </li>
+    <li>
+    <a name="RTOSConfigFolderName">
+    <b>Config Folder</b></a> - The RTOS FreeRTOSConfig.h wilf will be generated into this sub folder name. The name can be empty.
     </li>
     <li>
     <a name="UseManualClockValues">
@@ -307,12 +315,32 @@ There are 4 options:<br />
 </ul>
 </li>
 <li>
+<a name="KinetisSDKGroup">
+<b>Kinetis SDK</b></a> - Group used to configure the component for the Kinetis SDK<br />
+The following items are available only if the group is enabled (the value is "Enabled"):<br />
+
+<ul>
+  <li>
+  <a name="GenerateRTOSPExMacros">
+  <b>Generate RTOS PEx Macros</b></a> - If enabled, the component creates PEX_RTOS_INIT() and PEX_RTOS_START() macros in the component header file.
+  </li>
+  <li>
+  <a name="KinetisSDK">
+  <b>Kinetis SDK</b></a> - Link to Kinetis SDK component
+  </li>
+</ul>
+</li>
+<li>
 <a name="IsClassicCW">
 <b>Classic CodeWarrior</b></a> - If you are using this component in classic (non-eclipse based) CodeWarrior, then this setting has to be set to 'yes'. If you want to know why: The reason is that classic CodeWarrior does not come with the common_RTOSAdaptor.prg file. As such a test has to be present  in FreeRTOS.ts2.
 </li>
 <li>
 <a name="DisabledInterruptsInStartup">
 <b>Disabled Interrupts in Startup</b></a> - If set to 'yes', then interrupts will be disabled in PE_low_level_init() using the PEX_RTOS_INIT() macro.
+</li>
+<li>
+<a name="configASSERTdefined">
+<b>configASSERT defined</b></a> - If set to 'yes', FreeRTOSConfig.h will have the configASSERT() macro defined. lt is used in different places in the Kernel to verify proper operation. For better code density/speed you might set this option to 'no'.
 </li>
 <li>
 <a name="UseApplicationTaskTags">
@@ -340,6 +368,10 @@ The following items are available only if the group is enabled (the value is "En
 The following items are available only if the group is enabled (the value is "Enabled"):<br />
 
 <ul>
+  <li>
+  <a name="RuntimeCounterUseTickCounter">
+  <b>Use Tick Counter</b></a> - If enabled, it uses the Tick counter for the performance measurement. This is less accurate than using a timer with 10x frequency of the tick counter, but does not need an additional hardware timer.
+  </li>
   <li>
   <a name="LDDRuntimeCounterGroup">
   <b>LDD</b></a> - Logical Device Driver<br />
