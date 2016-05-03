@@ -92,7 +92,11 @@
 %-BW_METHOD_MACROS_END
 
 #include "%ProcessorModule.h"
-#include "trcUser.h"
+%if defined(StreamingTraceWithRTT) & %StreamingTraceWithRTT='yes'
+#include "trcRecorder.h" /* streaming trace with RTT */
+%else
+#include "trcUser.h" /* traditional recorder, without streaming over RTT */
+%endif
 
 %-STARTUSERTYPES - Do not make changes between lines (included this lines) marked with %-STARTUSERTYPES and %-ENDUSRTYPES
 
@@ -106,8 +110,6 @@
 %-    typedef int TMyInteger;
 %-
 %-BW_CUSTOM_USERTYPE_END
-
-
 %-BW_DEFINITION_START
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN uiTraceGetTraceBufferSize
@@ -185,7 +187,6 @@
 %endif %- xTraceOpenLabel
 %-BW_METHOD_END xTraceOpenLabel
 %-************************************************************************************************************
-%-************************************************************************************************************
 %-BW_METHOD_BEGIN vTraceUserEvent
 %ifdef vTraceUserEvent
 #define %'ModuleName'%.%vTraceUserEvent(eventLabel) \
@@ -209,7 +210,6 @@
 
 %endif %- vTracePrintF
 %-BW_METHOD_END vTracePrintF
-%-************************************************************************************************************
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN vTraceSetQueueName
 %ifdef vTraceSetQueueName
@@ -302,7 +302,7 @@
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN vGetGDBDumpCommand
 %ifdef vGetGDBDumpCommand
-void %'ModuleName'%.%vGetGDBDumpCommand(byte *buf, word bufSize, byte *fileName);
+void %'ModuleName'%.%vGetGDBDumpCommand(uint8_t *buf, uint16_t bufSize, uint8_t *fileName);
 %define! Parbuf
 %define! ParbufSize
 %define! ParfileName
@@ -669,8 +669,12 @@ void* %'ModuleName'%.%vTraceInitTraceData(void)
 %define! ParbufSize
 %define! ParfileName
 %include Common\PercepioTracevGetGDBDumpCommand.Inc
-void %'ModuleName'%.%vGetGDBDumpCommand(byte *buf, word bufSize, byte *fileName)
+void %'ModuleName'%.%vGetGDBDumpCommand(uint8_t *buf, uint16_t bufSize, uint8_t *fileName)
 {
+#if TRC_CONFIG_USE_RTT_STREAMING
+  /* with RTT streaming, there is no trace buffer */
+  *buf = '\0';
+#else
   /* construct gdb command string: dump binary memory <file> <hexStartAddr> <hexEndAddr> */
   uint8_t *ptr; /* pointer to data */
   size_t len; /* size/length of data */
@@ -683,6 +687,7 @@ void %'ModuleName'%.%vGetGDBDumpCommand(byte *buf, word bufSize, byte *fileName)
   %@Utility@'ModuleName'%.strcatNum32Hex(buf, bufSize, (uint32_t)ptr);
   %@Utility@'ModuleName'%.strcat(buf, bufSize, (unsigned char*)" 0x");
   %@Utility@'ModuleName'%.strcatNum32Hex(buf, bufSize, (uint32_t)(ptr+len));
+#endif
 }
 
 %endif %- vGetGDBDumpCommand
@@ -791,7 +796,13 @@ void %OnTraceStart(void)
 %include Common\PercepioTraceOnTraceWrap.Inc
 void %OnTraceWrap(void)
 {
+#if 0 /* default implementation for gdb below ... */
   /* Write your code here ... */
+  uint8_t buf[64];
+
+  /* GDB: dump binary memory <file> <hexStartAddr> <hexEndAddr> */
+  %'ModuleName'%.%vGetGDBDumpCommand(buf, sizeof(buf), "c:\\tmp\\trc.dump");
+#endif
 }
 
 %endif %- OnTraceWrap

@@ -1,0 +1,1092 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bean>
+  <Header>
+    <Name>SeggerRTT</Name>
+    <Description>Segger RTT (Real Time Terminal)</Description>
+    <Author>Erich Styger</Author>
+    <Version>01.069</Version>
+    <Icon>SeggerRTT</Icon>
+    <TypesFiles>PE,SeggerRTT\SeggerRTT</TypesFiles>
+    <FileVersion>6</FileVersion>
+  </Header>
+  <Options>
+    <BW_HelpType>Basic</BW_HelpType>
+    <BW_HelpFiles>,Properties,Methods,Events</BW_HelpFiles>
+    <BW_AutoSaveHelp>yes</BW_AutoSaveHelp>
+    <BW_AutoSaveDriver>yes</BW_AutoSaveDriver>
+    <BW_DetailedHelp>yes</BW_DetailedHelp>
+    <BW_NeedTps>yes</BW_NeedTps>
+    <BW_NeedUst>4</BW_NeedUst>
+    <BW_NeedCns>0</BW_NeedCns>
+    <BeanStatus>PROPOSAL</BeanStatus>
+    <Copyright>(c) Copyright Segger, 2015\nhttp      : www.segger.com</Copyright>
+    <Category>SW-User Components</Category>
+    <DemoDriver>no</DemoDriver>
+    <Shortcut>RTT</Shortcut>
+    <BeanLevel>High</BeanLevel>
+    <OneBeanInstance>There can be only one instance of the Segger RTT in a project.</OneBeanInstance>
+  </Options>
+  <PropertyList>
+    <Property>
+      <TCompNameItem>
+        <Name>Component name</Name>
+        <Symbol>DeviceName</Symbol>
+        <Hint>Name of the component.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>true</EditLine>
+        <DefaultValue/>
+      </TCompNameItem>
+    </Property>
+    <Property>
+      <TStrgItem>
+        <Name>Version</Name>
+        <Symbol>SeggerRTTVersion</Symbol>
+        <Hint>Version of RTT Library</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>true</EditLine>
+        <DefaultValue>V5.10u</DefaultValue>
+        <StrDefine>nothing</StrDefine>
+        <MinLength>0</MinLength>
+        <MaxLength>-1</MaxLength>
+      </TStrgItem>
+    </Property>
+    <Property>
+      <TIntgItem>
+        <Name>Number of Up Channels</Name>
+        <Symbol>RTTBufferNofUp</Symbol>
+        <Hint>Configures the device-to-host SEGGER_RTT_MAX_NUM_UP_BUFFERS in SEGGER_RTT_Conf.h (size is in bytes, default 1)</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>true</EditLine>
+        <DefaultValue>1</DefaultValue>
+        <MinValue>1</MinValue>
+        <MaxValue>-1</MaxValue>
+        <Bases>DEC</Bases>
+        <DefaultBase>DEC</DefaultBase>
+        <ExtraHintDisabled>false</ExtraHintDisabled>
+        <ChangeValueIntoRange>false</ChangeValueIntoRange>
+        <RuntimeProperty>false</RuntimeProperty>
+      </TIntgItem>
+    </Property>
+    <Property>
+      <TIntgItem>
+        <Name>Number of Down Channels</Name>
+        <Symbol>RTTBufferNofDown</Symbol>
+        <Hint>Configures host-to-device channels with SEGGER_RTT_MAX_NUM_DOWN_BUFFERS in SEGGER_RTT_Conf.h (size is in bytes, default 1)</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>true</EditLine>
+        <DefaultValue>1</DefaultValue>
+        <MinValue>1</MinValue>
+        <MaxValue>-1</MaxValue>
+        <Bases>DEC</Bases>
+        <DefaultBase>DEC</DefaultBase>
+        <ExtraHintDisabled>false</ExtraHintDisabled>
+        <ChangeValueIntoRange>false</ChangeValueIntoRange>
+        <RuntimeProperty>false</RuntimeProperty>
+      </TIntgItem>
+    </Property>
+    <Property>
+      <TIntgItem>
+        <Name>Max Blocked Interrupt Level</Name>
+        <Symbol>SeggerRTTMaxBlockedInterruptLevel</Symbol>
+        <Hint>Used for SEGGER_RTT_LOCK_INTERRUPT_LEVEL: On Cortex M4 the SEGGER_RTT_LOCK() macro in SEGGER_RTT_Conf.h only blocks interrupts with this interrupt number and below. If FreeRTOS is present, then configMAX_SYSCALL_INTERRUPT_PRIORITY is used.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>true</EditLine>
+        <DefaultValue>3</DefaultValue>
+        <MinValue>1</MinValue>
+        <MaxValue>15</MaxValue>
+        <Bases>DEC</Bases>
+        <DefaultBase>DEC</DefaultBase>
+        <ExtraHintDisabled>false</ExtraHintDisabled>
+        <ChangeValueIntoRange>false</ChangeValueIntoRange>
+        <RuntimeProperty>false</RuntimeProperty>
+      </TIntgItem>
+    </Property>
+    <Property>
+      <TBoolGrupItem>
+        <Name>Channel 0</Name>
+        <Symbol>RTTChannel0Enabled</Symbol>
+        <TypeSpec>typeEnaDis</TypeSpec>
+        <Hint>Settings for buffer 0, typically used for Terminal</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <BoldName>true</BoldName>
+        <EditLine>false</EditLine>
+        <Description>Enabled</Description>
+        <Expanded>Yes</Expanded>
+        <DefaultValue>true</DefaultValue>
+        <DefineSymbol>YES_NO</DefineSymbol>
+        <IfDisabled>setNOTHING</IfDisabled>
+        <Children>
+          <GrupItem>
+            <TStrgItem>
+              <Name>Name</Name>
+              <Symbol>NameChannel0</Symbol>
+              <Hint>This name is used for the channel. Use "Terminal" for the RTT termiinal view.</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>"Terminal"</DefaultValue>
+              <StrDefine>nothing</StrDefine>
+              <MinLength>0</MinLength>
+              <MaxLength>-1</MaxLength>
+            </TStrgItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>Up Buffer Size (Tx)</Name>
+              <Symbol>RTTBufferSizeUp</Symbol>
+              <Hint>Configures BUFFER_SIZE_UP in SEGGER_RTT_Conf.h (size is in bytes, default 1k)</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>512</DefaultValue>
+              <MinValue>1</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>Down Buffer Size (Rx)</Name>
+              <Symbol>RTTBufferSizeDown</Symbol>
+              <Hint>Configures BUFFER_SIZE_DOWN in SEGGER_RTT_Conf.h (size is in bytes, default 16)</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>64</DefaultValue>
+              <MinValue>1</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+          <GrupItem>
+            <TEnumItem>
+              <Name>Up Buffer Mode</Name>
+              <Symbol>UpBufferMode</Symbol>
+              <TypeSpec>typeSEGGER_RTT_MODE</TypeSpec>
+              <Hint>Mode to be used for Up Buffer</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>0</DefaultIndex>
+              <TextValueIndex>true</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+            </TEnumItem>
+          </GrupItem>
+          <GrupItem>
+            <TEnumItem>
+              <Name>Down Buffer Mode</Name>
+              <Symbol>DownBufferMode</Symbol>
+              <TypeSpec>typeSEGGER_RTT_MODE</TypeSpec>
+              <Hint>Mode to be used for Down Buffer</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>0</DefaultIndex>
+              <TextValueIndex>true</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+            </TEnumItem>
+          </GrupItem>
+          <GrupItem>
+            <TBoolGrupItem>
+              <Name>Blocking Send</Name>
+              <Symbol>BlockingSend</Symbol>
+              <TypeSpec>typeEnaDis</TypeSpec>
+              <Hint>Affects if StdIOSendChar shall be blocking or not</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <BoldName>true</BoldName>
+              <EditLine>false</EditLine>
+              <Description>Enabled</Description>
+              <Expanded>Yes</Expanded>
+              <DefaultValue>true</DefaultValue>
+              <DefineSymbol>YES_NO</DefineSymbol>
+              <IfDisabled>setNOTHING</IfDisabled>
+              <Children>
+                <GrupItem>
+                  <TIntgItem>
+                    <Name>Timeout (ms)</Name>
+                    <Symbol>RTTBlockingSendTimeoutMs</Symbol>
+                    <Hint>Timeout, how long to wait for a single character. Use zero for blocking send.</Hint>
+                    <ItemLevel>BASIC</ItemLevel>
+                    <EditLine>true</EditLine>
+                    <DefaultValue>5</DefaultValue>
+                    <MinValue>0</MinValue>
+                    <MaxValue>-1</MaxValue>
+                    <Bases>DEC</Bases>
+                    <DefaultBase>DEC</DefaultBase>
+                    <ExtraHintDisabled>false</ExtraHintDisabled>
+                    <ChangeValueIntoRange>false</ChangeValueIntoRange>
+                    <RuntimeProperty>false</RuntimeProperty>
+                  </TIntgItem>
+                </GrupItem>
+                <GrupItem>
+                  <TInhrLinkItem>
+                    <Name>Wait</Name>
+                    <Symbol>Wait</Symbol>
+                    <TypeSpec>SeggerRTT\Wait</TypeSpec>
+                    <Hint>Interface to wait routines</Hint>
+                    <ItemLevel>BASIC</ItemLevel>
+                    <EditLine>false</EditLine>
+                    <DefaultValue/>
+                    <CanDelete>false</CanDelete>
+                    <IconPopup>false</IconPopup>
+                    <SortStyle/>
+                  </TInhrLinkItem>
+                </GrupItem>
+                <GrupItem>
+                  <TIntgItem>
+                    <Name>Wait Time (ms)</Name>
+                    <Symbol>WaitTimeMs</Symbol>
+                    <Hint>Waiting time in milli seconds if sending was blocked (output buffer full). Use 0 for polling mode.</Hint>
+                    <ItemLevel>BASIC</ItemLevel>
+                    <EditLine>true</EditLine>
+                    <DefaultValue>1</DefaultValue>
+                    <MinValue>0</MinValue>
+                    <MaxValue>-1</MaxValue>
+                    <Bases>DEC</Bases>
+                    <DefaultBase>DEC</DefaultBase>
+                    <ExtraHintDisabled>false</ExtraHintDisabled>
+                    <ChangeValueIntoRange>false</ChangeValueIntoRange>
+                    <RuntimeProperty>false</RuntimeProperty>
+                  </TIntgItem>
+                </GrupItem>
+              </Children>
+            </TBoolGrupItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>Printf Buffer Size</Name>
+              <Symbol>RTTBufferSizePrintf</Symbol>
+              <Hint>Configures SEGGER_RTT_PRINTF_BUFFER_SIZE in SEGGER_RTT_Conf.h (size is in bytes, default 64)</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>64</DefaultValue>
+              <MinValue>1</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+        </Children>
+      </TBoolGrupItem>
+    </Property>
+    <Property>
+      <TBoolGrupItem>
+        <Name>Channel 1</Name>
+        <Symbol>Channel1Enabled</Symbol>
+        <TypeSpec>typeEnaDis</TypeSpec>
+        <Hint>Settings for channel 1</Hint>
+        <ItemLevel>@ HIDDEN @</ItemLevel>
+        <BoldName>true</BoldName>
+        <EditLine>false</EditLine>
+        <Description>Disabled</Description>
+        <Expanded>No</Expanded>
+        <DefaultValue>false</DefaultValue>
+        <DefineSymbol>YES_NO</DefineSymbol>
+        <IfDisabled>setNOTHING</IfDisabled>
+        <Children>
+          <GrupItem>
+            <TStrgItem>
+              <Name>Name</Name>
+              <Symbol>NameChannel1</Symbol>
+              <Hint>This name is used for the channel. Use "Terminal" for RTT (Terminal) viewer, or "SysView" for  Segger SystemView.</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>"Channel 1"</DefaultValue>
+              <StrDefine>nothing</StrDefine>
+              <MinLength>0</MinLength>
+              <MaxLength>-1</MaxLength>
+            </TStrgItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>Up Buffer Size</Name>
+              <Symbol>RTTBufferSizeUpChannel1</Symbol>
+              <Hint>Buffer size of channel in bytes</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>128</DefaultValue>
+              <MinValue>1</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+          <GrupItem>
+            <TEnumItem>
+              <Name>Up Buffer Mode</Name>
+              <Symbol>UpBufferModeChannel1</Symbol>
+              <TypeSpec>typeSEGGER_RTT_MODE</TypeSpec>
+              <Hint>Mode to be used for Up Buffer</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>0</DefaultIndex>
+              <TextValueIndex>true</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+            </TEnumItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>Down Buffer Size</Name>
+              <Symbol>RTTBufferSizeDownChannel1</Symbol>
+              <Hint>Buffer size of channel in bytes</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>64</DefaultValue>
+              <MinValue>1</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+          <GrupItem>
+            <TEnumItem>
+              <Name>Down Buffer Mode</Name>
+              <Symbol>DownBufferModeChannel1</Symbol>
+              <TypeSpec>typeSEGGER_RTT_MODE</TypeSpec>
+              <Hint>Mode to be used for Down Buffer</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>0</DefaultIndex>
+              <TextValueIndex>true</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+            </TEnumItem>
+          </GrupItem>
+        </Children>
+      </TBoolGrupItem>
+    </Property>
+    <Property>
+      <TInhrLinkItem>
+        <Name>SDK</Name>
+        <Symbol>sdk</Symbol>
+        <TypeSpec>SeggerRTT\KinetisSDK</TypeSpec>
+        <Hint>Link to SDK</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <DefaultValue/>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <SortStyle/>
+      </TInhrLinkItem>
+    </Property>
+  </PropertyList>
+  <MethodList>
+    <Method>
+      <TMthdItem>
+        <Name>Read</Name>
+        <Symbol>Read</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Read from buffer</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>int</ReturnType>
+        <RetHint>Number of bytes that have been read</RetHint>
+        <ParamCount>3</ParamCount>
+        <Parameter>
+          <ParName>BufferIndex</ParName>
+          <ParType>32bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Buffer/channel to be used. 0 for terminal.</ParHint>
+          <ParUserDeclaration>unsigned BufferIndex</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>pBuffer</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to buffer</ParHint>
+          <ParUserDeclaration>const char* pBuffer</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>BufferSize</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Number of bytes to write</ParHint>
+          <ParUserDeclaration>unsigned NumBytes</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>int #M#_#C#(unsigned BufferIndex, const char* pBuffer, unsigned NumBytes)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>Write</Name>
+        <Symbol>Write</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Write to buffer</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>int</ReturnType>
+        <RetHint>Number of bytes which have been written to the up buffer</RetHint>
+        <ParamCount>3</ParamCount>
+        <Parameter>
+          <ParName>BufferIndex</ParName>
+          <ParType>32bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Buffer/channel to be used. 0 for terminal.</ParHint>
+          <ParUserDeclaration>unsigned BufferIndex</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>pBuffer</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to buffer</ParHint>
+          <ParUserDeclaration>char* pBuffer</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>BufferSize</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Size of buffer</ParHint>
+          <ParUserDeclaration>unsigned BufferSize</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>int #M#_#C#(unsigned BufferIndex, char* pBuffer, unsigned BufferSize)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>WriteString</Name>
+        <Symbol>WriteString</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Write to buffer</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>unsigned</ReturnType>
+        <RetHint>Number of bytes which have been stored in the "Up"-buffer.</RetHint>
+        <ParamCount>2</ParamCount>
+        <Parameter>
+          <ParName>BufferIndex</ParName>
+          <ParType>unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Buffer/channel to be used. 0 for terminal.</ParHint>
+          <ParUserDeclaration>unsigned BufferIndex</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>s</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to </ParHint>
+          <ParUserDeclaration>const char* s</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>unsigned #M#_#C#(unsigned BufferIndex, const char* s)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>printf</Name>
+        <Symbol>printf</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Stores a formatted string in SEGGER RTT control block. This data is sent to the host.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>int</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>2</ParamCount>
+        <Parameter>
+          <ParName>BufferIndex</ParName>
+          <ParType>unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Index of "Up"-buffer to be used. (e.g. 0 for "Terminal")</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>sFormat</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Pointer to format string, followed by the arguments for conversion</ParHint>
+          <ParUserDeclaration>const char* sFormat, ...</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>int #M#_#C#(unsigned BufferIndex, const char* sFormat, ...)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>GetKey</Name>
+        <Symbol>GetKey</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Returns a character/key</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>32bit unsigned</ReturnType>
+        <RetHint>character code</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>dword #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>WaitKey</Name>
+        <Symbol>WaitKey</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Waits for a key and returns it.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>32bit signed</ReturnType>
+        <RetHint>&gt;=0    Character which has been read.</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>long #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>HasKey</Name>
+        <Symbol>HasKey</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Checks if at least one character for reading is available in the SEGGER RTT buffer</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>32bit signed</ReturnType>
+        <RetHint>0: No characters are available to read; 1: At least one character is available.</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>long #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>SetTerminal</Name>
+        <Symbol>SetTerminal</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint> Sets the terminal to be used for output on channel 0.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>int</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>TerminalId</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Terminal ID, 0..15</ParHint>
+          <ParUserDeclaration>char TerminalId</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>int #M#_#C#(char TerminalId)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>TerminalOut</Name>
+        <Symbol>TerminalOut</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Writes a string to the given terminal without changing the terminal for channel 0.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>int</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>2</ParamCount>
+        <Parameter>
+          <ParName>TerminalId</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>TerminalId, 0..15</ParHint>
+          <ParUserDeclaration>char TerminalId</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>s</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to string</ParHint>
+          <ParUserDeclaration>const char* s</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>int #M#_#C#(char TerminalId, const char* s)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>ConfigUpBuffer</Name>
+        <Symbol>ConfigUpBuffer</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Configures the Up (device to host) buffer</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>int</ReturnType>
+        <RetHint>Error code, &gt;=0 OK, &lt;0 Error</RetHint>
+        <ParamCount>5</ParamCount>
+        <Parameter>
+          <ParName>BufferIndex</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Buffer index</ParHint>
+          <ParUserDeclaration>unsigned BufferIndex</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>sName</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Buffer name</ParHint>
+          <ParUserDeclaration>const char* sName</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>pBuffer</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to buffer</ParHint>
+          <ParUserDeclaration>char* pBuffer</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>intBufferSize</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Size of buffer in bytes</ParHint>
+          <ParUserDeclaration>int BufferSize</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>Flags</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>SEGGER_RTT_MODE_NO_BLOCK_SKIP, SEGGER_RTT_MODE_NO_BLOCK_TRIM or  SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL</ParHint>
+          <ParUserDeclaration>int Flags</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>int #M#_#C#(unsigned BufferIndex, const char* sName, char* pBuffer, int BufferSize, int Flags)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>ConfigDownBuffer</Name>
+        <Symbol>ConfigDownBuffer</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Configures the Down (host to device) buffer</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>int</ReturnType>
+        <RetHint>Error code, &gt;=0 OK, &lt;0 Error</RetHint>
+        <ParamCount>5</ParamCount>
+        <Parameter>
+          <ParName>BufferIndex</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Buffer index</ParHint>
+          <ParUserDeclaration>unsigned BufferIndex</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>sName</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Buffer name</ParHint>
+          <ParUserDeclaration>const char* sName</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>pBuffer</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to buffer</ParHint>
+          <ParUserDeclaration>char* pBuffer</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>intBufferSize</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Size of buffer in bytes</ParHint>
+          <ParUserDeclaration>int BufferSize</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>Flags</ParName>
+          <ParType>8bit unsigned</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>SEGGER_RTT_MODE_NO_BLOCK_SKIP, SEGGER_RTT_MODE_NO_BLOCK_TRIM or  SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL</ParHint>
+          <ParUserDeclaration>int Flags</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>int #M#_#C#(unsigned BufferIndex, const char* sName, char* pBuffer, int BufferSize, int Flags)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>RecvChar</Name>
+        <Symbol>RecvChar</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Receives a character from channel 0. Returns ERR_RXEMPTY if no character available</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>uint8_t</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>c</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to where to store the received character</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>uint8_t #M#_#C#(uint8_t *c)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>SendChar</Name>
+        <Symbol>SendChar</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Sends a character to channel 0.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>uint8_t</ReturnType>
+        <RetHint>Error code. ERR_OK if character has been sent, ERR_TXFULL otherwise.</RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>ch</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Character to send</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>uint8_t #M#_#C#(uint8_t ch)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>GetCharsInRxBuf</Name>
+        <Symbol>GetCharsInRxBuf</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Returns the number of characters in the receive buffer.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>uint16_t</ReturnType>
+        <RetHint>Number of characters in the input buffer, zero for none available.</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>uint16_t #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>StdIOKeyPressed</Name>
+        <Symbol>StdIOKeyPressed</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>StdIO handler for Shell</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>Boolean</ReturnType>
+        <RetHint>True if there are characters in teh input buffer</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>bool #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>StdIOReadChar</Name>
+        <Symbol>StdIOReadChar</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>StdIO Handler for reading a character. It returns a zero byte if there is no character in input buffer.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>c</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to where to store the received character</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(uint8_t *c)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>StdIOSendChar</Name>
+        <Symbol>StdIOSendChar</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>StdIO handler to sends a character.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>none</RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>ch</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Character to send</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(uint8_t ch)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>Init</Name>
+        <Symbol>Init</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Initializes the RTT Control Block.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+  </MethodList>
+  <Links>
+    <EmptySection_DummyValue/>
+  </Links>
+  <Revisions>
+    <RevisionVersion>2</RevisionVersion>
+  </Revisions>
+</Bean>

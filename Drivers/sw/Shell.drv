@@ -73,29 +73,12 @@
 #define __%'ModuleName'_H
 
 /* MODULE %ModuleName. */
+#include <stdint.h>
+#include <stdbool.h>
 
-%ifdef SharedModules
-/* Include shared modules, which are used for whole project */
-  %for var from IncludeSharedModules
-#include "%'var'.h"
-  %endfor
-%endif
-%-BW_CUSTOM_INCLUDE_START_H
-%- Write your own includes here ...
-%-   Example:
-%-     #include "header_name.h"
-%if (%CPUDB_prph_has_feature(CPU,SDK_SUPPORT) = 'yes') %- TRUE/FALSE not defined for SDK projects
-#include "PE_KSDK_Types.h" /* if this file is missing: have you added the Kinetis SDK component? */
-
-%endif
-%-
-%-BW_CUSTOM_INCLUDE_END_H
-%-
-%-BW_METHOD_MACROS_START
-%-BW_METHOD_MACROS_END
-
-#include "%ProcessorModule.h"
-#include <stddef.h> /* for size_t */
+#ifndef bool
+  #include "PE_Types.h"
+#endif
 
 %-STARTUSERTYPES - Do not make changes between lines (included this lines) marked with %-STARTUSERTYPES and %-ENDUSRTYPES
 
@@ -138,10 +121,39 @@
 #endif
 
 %-ENDUSRTYPES
+
+
 %-BW_BEAN_CONSTANTS_START  - Do not make changes between lines (included this lines) marked with %-BW_BEAN_CONSTANTS_START and %-BW_BEAN_CONSTANTS_END
 %- No constants defined in the BeanWizard for this bean
 %-BW_BEAN_CONSTANTS_END
 %-BW_CUSTOM_USERTYPE_START
+
+/* Include inherited components */
+%ifdef InhrSymbolList
+  %for var from InhrSymbolList
+#include "%@%var@ModuleName.h"
+  %endfor
+%endif
+
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%ifdef SharedModules
+/* Include shared modules, which are used for whole project */
+  %for var from IncludeSharedModules
+  #include "%'var'.h"
+  %endfor
+%endif
+%-BW_CUSTOM_INCLUDE_START_H
+%- Write your own includes here ...
+%-   Example:
+%-     #include "header_name.h"
+%-
+%-BW_CUSTOM_INCLUDE_END_H
+%-
+%-BW_METHOD_MACROS_START
+%-BW_METHOD_MACROS_END
+  #include "%ProcessorModule.h"
+#endif
+#include <stddef.h> /* for size_t */
 %- Write your own types here ...
 %-  Example:
 %-    typedef int TMyInteger;
@@ -484,7 +496,7 @@ void %'ModuleName'%.%SendData(const uint8_t *data, uint16_t dataSize, %'ModuleNa
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN IsHistoryCharacter
 %ifdef IsHistoryCharacter
-bool %'ModuleName'%.%IsHistoryCharacter(byte ch, byte *cmdBuf, size_t cmdBufIdx, bool *isPrev);
+bool %'ModuleName'%.%IsHistoryCharacter(uint8_t ch, uint8_t *cmdBuf, size_t cmdBufIdx, bool *isPrev);
 %define! ParcmdBuf
 %define! ParcmdBufIdx
 %define! ParisPrev
@@ -533,12 +545,6 @@ void %OnAfterIterateCmd(const uint8_t *cmd);
 #include "%var.h"
 %endfor
 #include "%'ModuleName'.h"
-/* Include inherited components */
-%ifdef InhrSymbolList
-  %for var from InhrSymbolList
-#include "%@%var@ModuleName.h"
-  %endfor
-%endif
 %-BW_CUSTOM_INCLUDE_START_M
 %- Write your own includes here ...
 %-   Example:
@@ -554,6 +560,9 @@ void %OnAfterIterateCmd(const uint8_t *cmd);
 #if %'ModuleName'%.HISTORY_ENABLED
   static uint8_t %'ModuleName'_history[%'ModuleName'%.NOF_HISTORY][%'ModuleName'%.HIST_LEN];%>40/* History buffers */
   static uint8_t %'ModuleName'_history_index = 0;                %>40/* Selected command */
+#endif
+#if %'ModuleName'%.ECHO_ENABLED
+  static bool %'ModuleName'_EchoEnabled = TRUE;
 #endif
 
 %if defined(OperatingSystemId) & OperatingSystemId = 'FreeRTOS' & defined(ConsoleSempahore) & %ConsoleSempahore='yes'
@@ -736,8 +745,21 @@ uint8_t %'ModuleName'%.%ParseCommand(const uint8_t *cmd, bool *handled, %'Module
 %else %- only help
     %'ModuleName'%.%SendHelpStr((unsigned char*)"  help", (const unsigned char*)"Prints help\r\n", io->stdOut);
 %endif
+#if %'ModuleName'%.ECHO_ENABLED
+    %'ModuleName'%.%SendHelpStr((unsigned char*)"  echo (on|off)", (const unsigned char*)"Turn echo on or off\r\n", io->stdOut);
+#endif
     *handled = TRUE;
     return ERR_OK;
+#if %'ModuleName'%.ECHO_ENABLED
+  } else if ((%@Utility@'ModuleName'%.strcmp((char*)cmd, "%'ModuleName' echo on")==0)) {
+    *handled = TRUE;
+    %'ModuleName'%.EchoEnabled = TRUE;
+    return ERR_OK;
+  } else if ((%@Utility@'ModuleName'%.strcmp((char*)cmd, "%'ModuleName' echo off")==0)) {
+    *handled = TRUE;
+    %'ModuleName'%.EchoEnabled = FALSE;
+    return ERR_OK;
+#endif
 %if defined(PrintStatus)
   } else if ((%@Utility@'ModuleName'%.strcmp((char*)cmd, %'ModuleName'%.CMD_STATUS)==0) || (%@Utility@'ModuleName'%.strcmp((char*)cmd, "%'ModuleName' status")==0)) {
     *handled = TRUE;
@@ -770,10 +792,14 @@ void %'ModuleName'%.%PrintPrompt(%'ModuleName'_ConstStdIOType *io)
 %define! Parch
 %define! RetVal
 %include Common\ShellIsHistoryCharacter.Inc
-bool %'ModuleName'%.%IsHistoryCharacter(byte ch, byte *cmdBuf, size_t cmdBufIdx, bool *isPrev)
+bool %'ModuleName'%.%IsHistoryCharacter(uint8_t ch, uint8_t *cmdBuf, size_t cmdBufIdx, bool *isPrev)
 {
   *isPrev = FALSE;
 #if %'ModuleName'%.HISTORY_ENABLED
+  if (   cmdBufIdx==0 /* first character on command line */
+      || (%@Utility@'ModuleName'%.strcmp(cmdBuf, %'ModuleName'%.history[%'ModuleName'%.history_index])==0) /* pressing prev/next character on previous history element */
+      )
+  {
     if (ch==%'ModuleName'%.HISTORY_PREV_CHAR) {
       *isPrev = TRUE;
       return TRUE;
@@ -781,6 +807,30 @@ bool %'ModuleName'%.%IsHistoryCharacter(byte ch, byte *cmdBuf, size_t cmdBufIdx,
       *isPrev = FALSE;
       return TRUE;
     }
+  }
+#if 0
+  if (cmdBufIdx==0 || cmdBufIdx==2) { /* accept only first character or sequence as history sequence */
+    if (cmdBufIdx==2 && cmdBuf[0]==0x1b && cmdBuf[1]==0x5b) {
+      /* up:    0x27 0x5b 0x41
+       * down:  0x27 0x5b 0x42
+       * right: 0x27 0x5b 0x43
+       * left:  0x27 0x5b 0x44
+       */
+      if (cmdBuf[2]==0x41 /* up */ || cmdBuf[2]==0x44 /* left */) {
+        *isPrev = TRUE;
+        return TRUE;
+      } else if (cmdBuf[2]==0x42 /* down */ || cmdBuf[2]==0x43 /* right */) {
+        *isPrev = FALSE;
+        return TRUE;
+      }
+    }
+    /* \todo: handle TAB and SHIFT-TAB */
+  }
+#endif
+#else
+  (void)ch; /* not used */
+  (void)cmdBuf; /* not used */
+  (void)cmdBufIdx; /* not used */
 #endif
   return FALSE;
 }
@@ -811,9 +861,11 @@ bool %'ModuleName'%.%ReadLine(uint8_t *bufStart, uint8_t *buf, size_t bufSize, %
       if (c=='\b' || c=='\177') {                                %>40/* check for backspace */
         if (buf > bufStart) {                                    %>40/* Avoid buffer underflow */
 #if %'ModuleName'%.ECHO_ENABLED
-           io->stdOut('\b');                                     %>40/* delete character on terminal */
-           io->stdOut(' ');
-           io->stdOut('\b');
+           if (%'ModuleName'_EchoEnabled) {
+             io->stdOut('\b');                                   %>40/* delete character on terminal */
+             io->stdOut(' ');
+             io->stdOut('\b');
+           }
 #endif
            buf--;                                                %>40/* delete last character in buffer */
            *buf = '\0';
@@ -862,20 +914,26 @@ bool %'ModuleName'%.%ReadLine(uint8_t *bufStart, uint8_t *buf, size_t bufSize, %
         buf = bufStart + %@Utility@'ModuleName'%.strlen(bufStart);
 #endif
 #if %'ModuleName'%.ECHO_ENABLED
-        %'ModuleName'%.%SendStr((unsigned char*)"\r\n", io->stdOut);
-        %'ModuleName'%.%PrintPrompt(io);
-        %'ModuleName'%.%SendStr(bufStart, io->stdOut);
+        if (%'ModuleName'_EchoEnabled) {
+          %'ModuleName'%.%SendStr((unsigned char*)"\r\n", io->stdOut);
+          %'ModuleName'%.%PrintPrompt(io);
+          %'ModuleName'%.%SendStr(bufStart, io->stdOut);
+        }
 #endif
       } else {
 #if %'ModuleName'%.ECHO_ENABLED
-        io->stdOut(c);                                           %>40/* echo character */
+        if (%'ModuleName'_EchoEnabled) {
+          io->stdOut(c);                                         %>40/* echo character */
+        }
 #endif
         *buf = (uint8_t)c;                                       %>40/* append character to the string */
         buf++;
         bufSize--;
         if ((c=='\r') || (c=='\n')) {
 #if %'ModuleName'%.ECHO_ENABLED
-          %'ModuleName'%.%SendStr((unsigned char*)"\n", io->stdOut);
+          if (%'ModuleName'_EchoEnabled) {
+            %'ModuleName'%.%SendStr((unsigned char*)"\n", io->stdOut);
+          }
 #endif
 #if %'ModuleName'%.HISTORY_ENABLED
           if ((bufStart[0] != '\0') && (bufStart[0] != '\r') && (bufStart[0] != '\n')) {
@@ -917,15 +975,14 @@ bool %'ModuleName'%.%ReadLine(uint8_t *bufStart, uint8_t *buf, size_t bufSize, %
 %include Common\ShellPrintStatus.Inc
 uint8_t %'ModuleName'%.%PrintStatus(%'ModuleName'_ConstStdIOType *io)
 {
-  %'ModuleName'%.%SendStr((unsigned char*)"\r\n", io->stdOut);
-  %'ModuleName'%.%SendStr((unsigned char*)%'ModuleName'%.DASH_LINE, io->stdOut);
-  %'ModuleName'%.%SendStr((unsigned char*)"\r\nSYSTEM STATUS\r\n", io->stdOut);
-  %'ModuleName'%.%SendStr((unsigned char*)%'ModuleName'%.DASH_LINE, io->stdOut);
-  %'ModuleName'%.%SendStr((unsigned char*)"\r\n", io->stdOut);
-  %'ModuleName'%.%SendStatusStr((const unsigned char*)"Firmware", (const unsigned char*)__DATE__, io->stdOut);
+  %'ModuleName'%.%SendStatusStr((const unsigned char*)"%'ModuleName'", (const unsigned char*)"\r\n", io->stdOut);
+  %'ModuleName'%.%SendStatusStr((const unsigned char*)"  Build", (const unsigned char*)__DATE__, io->stdOut);
   %'ModuleName'%.%SendStr((unsigned char*)" ", io->stdOut);
   %'ModuleName'%.%SendStr((unsigned char*)__TIME__, io->stdOut);
   %'ModuleName'%.%SendStr((unsigned char*)"\r\n", io->stdOut);
+#if %'ModuleName'%.ECHO_ENABLED
+  %'ModuleName'%.%SendStatusStr((const unsigned char*)"  echo", %'ModuleName'_EchoEnabled?(const unsigned char*)"On\r\n":(const unsigned char*)"Off\r\n", io->stdOut);
+#endif
   return ERR_OK;
 }
 
@@ -963,6 +1020,9 @@ uint8_t %'ModuleName'%.%IterateTable(const uint8_t *cmd, bool *handled, %'Module
   uint8_t res = ERR_OK;
 
   if (parserTable==NULL) { /* no table??? */
+    return ERR_FAILED;
+  }
+  if (io==NULL) { /* no IO handler??? */
     return ERR_FAILED;
   }
   /* iterate through all parser functions in table */
@@ -1004,6 +1064,9 @@ uint8_t %'ModuleName'%.%ParseWithCommandTable(const uint8_t *cmd, %'ModuleName'_
   bool parseBuffer, finished;
 #endif
 
+  if (io==NULL) { /* no I/O handler? */
+    return ERR_FAILED;
+  }
   if (*cmd=='\0') { /* empty command */
     return ERR_OK;
   }
@@ -1109,10 +1172,13 @@ uint8_t %'ModuleName'%.%SetStdio(%'ModuleName'_ConstStdIOTypePtr stdio)
 %include Common\ShellReadAndParseWithCommandTable.Inc
 uint8_t %'ModuleName'%.%ReadAndParseWithCommandTable(uint8_t *cmdBuf, size_t cmdBufSize, %'ModuleName'_ConstStdIOType *io, %'ModuleName'_ConstParseCommandCallback *parseCallback)
 {
+  /* IMPORTANT NOTE: this function *appends* to the buffer, so the buffer needs to be initialized first! */
   uint8_t res = ERR_OK;
   size_t len;
 
-  /* IMPORTANT NOTE: this function *appends* to the buffer, so the buffer needs to be initialized first! */
+  if (io==NULL) { /* no I/O handler? */
+    return ERR_FAILED;
+  }
   len = %@Utility@'ModuleName'%.strlen((const char*)cmdBuf);
   if (%'ModuleName'%.ReadLine(cmdBuf, cmdBuf+len, cmdBufSize-len, io)) {
     len = %@Utility@'ModuleName'%.strlen((const char*)cmdBuf);   %>40/* length of buffer string */
@@ -1122,7 +1188,7 @@ uint8_t %'ModuleName'%.%ReadAndParseWithCommandTable(uint8_t *cmdBuf, size_t cmd
       cmdBuf[0] = '\0';
     }
     if (len>=cmdBufSize-1) {                                     %>40/* buffer overflow? Parse what we have, will be likely return an error */
-      res = %'ModuleName'%.%ParseWithCommandTable(cmdBuf, io, parseCallback);
+      (void)%'ModuleName'%.%ParseWithCommandTable(cmdBuf, io, parseCallback);
       cmdBuf[0] = '\0'; /* start again */
       res = ERR_OVERFLOW;
     } else if (cmdBuf[len-1]=='\n' || cmdBuf[len-1]=='\r') {     %>40/* line end: parse command */
@@ -1280,6 +1346,10 @@ void %'ModuleName'%.%SendChar(uint8_t ch)
   %if BlockingSend='yes'
   uint8_t res;
   %endif
+%if defined(ShellBlockingSendTimeoutMs) & %ShellBlockingSendTimeoutMs >. '0' & defined(WaitTimeMs) & WaitTimeMs >. '0'
+  int timeoutMs = %ShellBlockingSendTimeoutMs;
+
+%endif
 
 %if defined(OperatingSystemId) & OperatingSystemId = 'FreeRTOS' & defined(ConsoleSempahore) & %ConsoleSempahore='yes'
   (void)xSemaphoreTakeRecursive(ShellSem, portMAX_DELAY);
@@ -1296,6 +1366,12 @@ void %'ModuleName'%.%SendChar(uint8_t ch)
       %@Wait@'ModuleName'%.Waitms(%WaitTimeMs);
     %endif
     }
+  %endif
+  %if defined(ShellBlockingSendTimeoutMs) & %ShellBlockingSendTimeoutMs >. '0'
+    if(timeoutMs<=0) {
+      break; /* timeout */
+    }
+    timeoutMs -= %WaitTimeMs;
   %endif
   } while(res==ERR_TXFULL);
   %else
@@ -1372,6 +1448,9 @@ void %'ModuleName'%.%Init(void)
       %'ModuleName'_history[i][0] = '\0';
     }
   }
+#endif
+#if %'ModuleName'%.ECHO_ENABLED
+  %'ModuleName'_EchoEnabled = FALSE;
 #endif
 }
 

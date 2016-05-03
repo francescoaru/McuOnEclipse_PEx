@@ -219,7 +219,7 @@ LI.EXP {
 </li>
 <li>
 <a name="EchoEnabled">
-<b>Echo</b></a> - If enabled, the component will echo characters read on the terminal.
+<b>Echo</b></a> - If enabled, the shell will echo characters read on the terminal. The shell offers the echo command to turn echo on and off.
 </li>
 <li>
 <a name="Prompt">
@@ -249,6 +249,10 @@ The following items are available only if the group is enabled (the value is "En
   <li>
   <a name="Wait">
   <b>Wait</b></a> - Interface to waiting routine
+  </li>
+  <li>
+  <a name="ShellBlockingSendTimeoutMs">
+  <b>Timeout (ms)</b></a> - Timeout used to wait. Use zero for blocking send.
   </li>
   <li>
   <a name="WaitTimeMs">
@@ -331,6 +335,10 @@ The following items are available only if the group is enabled (the value is "ye
   <b>Char for Previous</b></a> - Character key for previous item in history. Use \t for TAB and \e for SHIFT+TAB
   </li>
 </ul>
+</li>
+<li>
+<a name="sdk">
+<b>Kinetis SDK</b></a> - Interface to Kinetis SDK to ensure additional symbols are defined in case Kinetis SDK is used.
 </li>
 
      </ul>

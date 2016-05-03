@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -75,11 +75,17 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "portTicks.h" /* for CPU_CORE_CLK_HZ used in configSYSTICK_CLOCK_HZ */
+#ifndef __HIWARE__ /* S08/S12 compiler only supports C89 */
+  #include <stdbool.h>
+#endif
 #if configSYSTICK_USE_LOW_POWER_TIMER
   #include "LPTMR_PDD.h" /* PDD interface to low power timer */
   #include "SIM_PDD.h"   /* PDD interface to system integration module */
 #endif
-#if !configPEX_KINETIS_SDK
+%if defined(KinetisSDK)
+#include "%KinetisSDK.h" /* include interface to SDK */
+%endif
+#if %@KinetisSDK@'ModuleName'%.SDK_VERSION_USED == %@KinetisSDK@'ModuleName'%.SDK_VERSION_NONE
   #include "%ProcessorModule.h"
 #endif
 /* --------------------------------------------------- */
@@ -99,6 +105,13 @@
   #define DISABLE_TICK_COUNTER()      LPTMR_PDD_EnableDevice(LPTMR0_BASE_PTR, PDD_DISABLE); LPTMR_PDD_DisableInterrupt(LPTMR0_BASE_PTR)
   #define RESET_TICK_COUNTER_VAL()    DISABLE_TICK_COUNTER()  /* CNR is reset when the LPTMR is disabled or counter register overflows */
   #define ACKNOWLEDGE_TICK_ISR()      LPTMR_PDD_ClearInterruptFlag(LPTMR0_BASE_PTR)
+  #if defined(LDD_ivIndex_INT_LPTimer) /* Earlier version of Processor Expert use this vector name */
+    #define configLOW_POWER_TIMER_VECTOR_NUMBER   LDD_ivIndex_INT_LPTimer
+  #elif defined(LDD_ivIndex_INT_LPTMR0) /* Newer versions (Processor Expert for Kinetis v3.0.1 uses this name */
+    #define configLOW_POWER_TIMER_VECTOR_NUMBER   LDD_ivIndex_INT_LPTMR0
+  #else
+  #error "Unknown Low Power Timer Interrupt Number?"
+  #endif
 #else
   #define ENABLE_TICK_COUNTER()       portNVIC_SYSTICK_CTRL_REG = portNVIC_SYSTICK_CLK_BIT | portNVIC_SYSTICK_INT_BIT | portNVIC_SYSTICK_ENABLE_BIT
   #define DISABLE_TICK_COUNTER()      portNVIC_SYSTICK_CTRL_REG = portNVIC_SYSTICK_CLK_BIT | portNVIC_SYSTICK_INT_BIT
@@ -368,9 +381,7 @@ static unsigned portBASE_TYPE uxCriticalNesting = 0xaaaaaaaa;
   #error "undefined target %CPUfamily!"
 %endif
 
-#define configUSE_TASK_END_SCHEDULER   1
-
-#if configUSE_TASK_END_SCHEDULER
+#if INCLUDE_vTaskEndScheduler
 #include <setjmp.h>
 static jmp_buf xJumpBuf; /* Used to restore the original context when the scheduler is ended. */
 #endif
@@ -1097,15 +1108,16 @@ void vPortInitTickTimer(void) {
   LPTMR_PDD_EnablePrescalerBypass(LPTMR0_BASE_PTR, LPTMR_PDD_BYPASS_ENABLED);
 
   /* set timer interrupt priority in IP[] and enable it in ISER[] */
-  NVIC_SetPriority(LDD_ivIndex_INT_LPTimer, configLIBRARY_LOWEST_INTERRUPT_PRIORITY);
-  NVIC_EnableIRQ(LDD_ivIndex_INT_LPTimer); /* enable IRQ in NVIC_ISER[] */
+  NVIC_SetPriority(configLOW_POWER_TIMER_VECTOR_NUMBER, configLIBRARY_LOWEST_INTERRUPT_PRIORITY);
+  NVIC_EnableIRQ(configLOW_POWER_TIMER_VECTOR_NUMBER); /* enable IRQ in NVIC_ISER[] */
 #else /* use normal SysTick Counter */
   *(portNVIC_SYSPRI3) |= portNVIC_SYSTICK_PRI; /* set priority of SysTick interrupt */
 #endif
   /* Configure timer to interrupt at the requested rate. */
-  SET_TICK_DURATION(TIMER_COUNTS_FOR_ONE_TICK-1UL);
-  RESET_TICK_COUNTER_VAL();
-  ENABLE_TICK_COUNTER();
+  DISABLE_TICK_COUNTER(); /* disable the timer, just in case it is already running */
+  SET_TICK_DURATION(TIMER_COUNTS_FOR_ONE_TICK-1UL); /* set tick period */
+  RESET_TICK_COUNTER_VAL(); /* reset counter so it starts properly */
+  ENABLE_TICK_COUNTER(); /* let it run */
 %endif
 }
 /*-----------------------------------------------------------*/
@@ -1166,19 +1178,40 @@ __asm void vPortEnableVFP(void) {
 #endif /* GNU or Keil */
 #endif /* configCPU_FAMILY_ARM_M4F */
 /*-----------------------------------------------------------*/
+/*
+ * Used by the portASSERT_IF_INTERRUPT_PRIORITY_INVALID() macro to ensure
+ * FreeRTOS API functions are not called from interrupts that have been assigned
+ * a priority above configMAX_SYSCALL_INTERRUPT_PRIORITY.
+ */
+#if configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) && (configASSERT_DEFINED == 1)
+  /* Constants required to check the validity of an interrupt priority. */
+  #define portFIRST_USER_INTERRUPT_NUMBER   ( 16 )
+  #define portNVIC_IP_REGISTERS_OFFSET_16   ( 0xE000E3F0 )
+  #define portAIRCR_REG           ( * ( ( volatile uint32_t * ) 0xE000ED0C ) )
+  #define portMAX_8_BIT_VALUE         ( ( uint8_t ) 0xff )
+  #define portTOP_BIT_OF_BYTE         ( ( uint8_t ) 0x80 )
+  #define portMAX_PRIGROUP_BITS       ( ( uint8_t ) 7 )
+  #define portPRIORITY_GROUP_MASK       ( 0x07UL << 8UL )
+  #define portPRIGROUP_SHIFT          ( 8UL )
+
+  static uint8_t ucMaxSysCallPriority = 0;
+  static uint32_t ulMaxPRIGROUPValue = 0;
+  static const volatile uint8_t * const pcInterruptPriorityRegisters = ( const volatile uint8_t * const ) portNVIC_IP_REGISTERS_OFFSET_16;
+#endif /* configASSERT_DEFINED */
+
 BaseType_t xPortStartScheduler(void) {
 %if (CPUfamily = "ColdFireV1") | (CPUfamily = "MCF")
   uxCriticalNesting = 0;
   vPortInitTickTimer();
   vPortStartTickTimer();
-#if configUSE_TASK_END_SCHEDULER
+#if INCLUDE_vTaskEndScheduler
   if (setjmp(xJumpBuf)!=0) {
     /* here we will get in case of call to vTaskEndScheduler() */
     return pdFALSE;
   }
 #endif
   /* Kick off the scheduler by setting up the context of the first task. */
-  vPortStartFirstTask();     %>40/* start the first task executing. Note that we will not return here */
+  vPortStartFirstTask(); /* start the first task executing. Note that we will not return here */
   return pdFALSE;
 %elif (CPUfamily = "HCS08") | (CPUfamily = "HC08") | (CPUfamily = "HCS12") | (CPUfamily = "HCS12X")
   /* xPortStartScheduler() does not start the scheduler directly because
@@ -1188,7 +1221,7 @@ BaseType_t xPortStartScheduler(void) {
      which does use the CODE_SEG pragma. */
   vPortInitTickTimer();
   vPortStartTickTimer();
-#if configUSE_TASK_END_SCHEDULER
+#if INCLUDE_vTaskEndScheduler
   if(setjmp(xJumpBuf) != 0 ) {
     /* here we will get in case of call to vTaskEndScheduler() */
     return pdFALSE;
@@ -1200,48 +1233,48 @@ BaseType_t xPortStartScheduler(void) {
   See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
   configASSERT( configMAX_SYSCALL_INTERRUPT_PRIORITY );
 
-#if 0 /* NYI */ && configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* ARM M4(F) core */
-  #if(configASSERT_DEFINED == 1 )
+#if configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* ARM M4(F) core */
+  #if( configASSERT_DEFINED == 1 )
   {
-      volatile uint32_t ulOriginalPriority;
-      volatile uint8_t * const pucFirstUserPriorityRegister = ( volatile uint8_t * const ) ( portNVIC_IP_REGISTERS_OFFSET_16 + portFIRST_USER_INTERRUPT_NUMBER );
-      volatile uint8_t ucMaxPriorityValue;
+    volatile uint32_t ulOriginalPriority;
+    volatile uint8_t * const pucFirstUserPriorityRegister = ( volatile uint8_t * const ) ( portNVIC_IP_REGISTERS_OFFSET_16 + portFIRST_USER_INTERRUPT_NUMBER );
+    volatile uint8_t ucMaxPriorityValue;
 
-      /* Determine the maximum priority from which ISR safe FreeRTOS API
-      functions can be called.  ISR safe functions are those that end in
-      "FromISR".  FreeRTOS maintains separate thread and ISR API functions to
-      ensure interrupt entry is as fast and simple as possible.
+    /* Determine the maximum priority from which ISR safe FreeRTOS API
+    functions can be called.  ISR safe functions are those that end in
+    "FromISR".  FreeRTOS maintains separate thread and ISR API functions to
+    ensure interrupt entry is as fast and simple as possible.
 
-      Save the interrupt priority value that is about to be clobbered. */
-      ulOriginalPriority = *pucFirstUserPriorityRegister;
+    Save the interrupt priority value that is about to be clobbered. */
+    ulOriginalPriority = *pucFirstUserPriorityRegister;
 
-      /* Determine the number of priority bits available.  First write to all
-      possible bits. */
-      *pucFirstUserPriorityRegister = portMAX_8_BIT_VALUE;
+    /* Determine the number of priority bits available.  First write to all
+    possible bits. */
+    *pucFirstUserPriorityRegister = portMAX_8_BIT_VALUE;
 
-      /* Read the value back to see how many bits stuck. */
-      ucMaxPriorityValue = *pucFirstUserPriorityRegister;
+    /* Read the value back to see how many bits stuck. */
+    ucMaxPriorityValue = *pucFirstUserPriorityRegister;
 
-      /* Use the same mask on the maximum system call priority. */
-      ucMaxSysCallPriority = configMAX_SYSCALL_INTERRUPT_PRIORITY & ucMaxPriorityValue;
+    /* Use the same mask on the maximum system call priority. */
+    ucMaxSysCallPriority = configMAX_SYSCALL_INTERRUPT_PRIORITY & ucMaxPriorityValue;
 
-      /* Calculate the maximum acceptable priority group value for the number
-      of bits read back. */
-      ulMaxPRIGROUPValue = portMAX_PRIGROUP_BITS;
-      while( ( ucMaxPriorityValue & portTOP_BIT_OF_BYTE ) == portTOP_BIT_OF_BYTE )
-      {
-          ulMaxPRIGROUPValue--;
-          ucMaxPriorityValue <<= ( uint8_t ) 0x01;
-      }
+    /* Calculate the maximum acceptable priority group value for the number
+    of bits read back. */
+    ulMaxPRIGROUPValue = portMAX_PRIGROUP_BITS;
+    while( ( ucMaxPriorityValue & portTOP_BIT_OF_BYTE ) == portTOP_BIT_OF_BYTE )
+    {
+      ulMaxPRIGROUPValue--;
+      ucMaxPriorityValue <<= ( uint8_t ) 0x01;
+    }
 
-      /* Shift the priority group value back to its position within the AIRCR
-      register. */
-      ulMaxPRIGROUPValue <<= portPRIGROUP_SHIFT;
-      ulMaxPRIGROUPValue &= portPRIORITY_GROUP_MASK;
+    /* Shift the priority group value back to its position within the AIRCR
+    register. */
+    ulMaxPRIGROUPValue <<= portPRIGROUP_SHIFT;
+    ulMaxPRIGROUPValue &= portPRIORITY_GROUP_MASK;
 
-      /* Restore the clobbered interrupt priority register to its original
-      value. */
-      *pucFirstUserPriorityRegister = ulOriginalPriority;
+    /* Restore the clobbered interrupt priority register to its original
+    value. */
+    *pucFirstUserPriorityRegister = ulOriginalPriority;
   }
   #endif /* conifgASSERT_DEFINED */
 #endif /* configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) */ /* ARM M4(F) core */
@@ -1260,7 +1293,7 @@ BaseType_t xPortStartScheduler(void) {
   vPortEnableVFP(); /* Ensure the VFP is enabled - it should be anyway */
   *(portFPCCR) |= portASPEN_AND_LSPEN_BITS; /* Lazy register save always */
 #endif
-#if configUSE_TASK_END_SCHEDULER
+#if INCLUDE_vTaskEndScheduler
     if(setjmp(xJumpBuf) != 0 ) {
       /* here we will get in case of call to vTaskEndScheduler() */
       return pdFALSE;
@@ -1273,7 +1306,7 @@ BaseType_t xPortStartScheduler(void) {
   uxCriticalNesting = 0; /* initialize critical nesting count */
   vPortInitTickTimer(); /* initialize tick timer */
   vPortStartTickTimer(); /* start tick timer */
-#if configUSE_TASK_END_SCHEDULER
+#if INCLUDE_vTaskEndScheduler
   if(setjmp(xJumpBuf) != 0 ) {
     /* here we will get in case of call to vTaskEndScheduler() */
     return pdFALSE;
@@ -1293,7 +1326,7 @@ void vPortEndScheduler(void) {
   /* Jump back to the processor state prior to starting the
      scheduler.  This means we are not going to be using a
      task stack frame so the task can be deleted. */
-#if configUSE_TASK_END_SCHEDULER
+#if INCLUDE_vTaskEndScheduler
   longjmp(xJumpBuf, 1);
 #else
   for(;;){} /* wait here */
@@ -1334,11 +1367,25 @@ void vPortEnterCritical(void) {
   portPOST_ENABLE_DISABLE_INTERRUPTS();
   uxCriticalNesting++;
   %if (CPUfamily = "Kinetis")
-  %if %Compiler="CodeWarriorARM" %- not supported by Freescale ARM compiler
-  %else
+    %if %Compiler="CodeWarriorARM" %- not supported by legacy Freescale ARM compiler
+    %else
+#if configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) || configCPU_FAMILY_IS_ARM_M7(configCPU_FAMILY)
+  /* This is not the interrupt safe version of the enter critical function so
+  assert() if it is being called from an interrupt context.  Only API
+  functions that end in "FromISR" can be used in an interrupt.  Only assert if
+  the critical nesting count is 1 to protect against recursive calls if the
+  assert function also uses a critical section. */
+  if( uxCriticalNesting == 1 )
+  {
+    /* Masks off all bits but the VECTACTIVE bits in the ICSR register. */
+    #define portVECTACTIVE_MASK         (0xFFUL)
+
+    configASSERT(((*portNVIC_INT_CTRL) & portVECTACTIVE_MASK)==0);
+  }
+#endif
   __asm volatile("dsb");
   __asm volatile("isb");
-  %endif
+    %endif
   %endif
 %else
   %warning "unsupported target %CPUfamily!"
@@ -1448,6 +1495,9 @@ portLONG uxGetTickCounterValue(void) {
 }
 /*-----------------------------------------------------------*/
 %endif
+#if configUSE_SEGGER_SYSTEM_VIEWER_HOOKS && configCPU_FAMILY==configCPU_FAMILY_ARM_M0P
+unsigned int SEGGER_SYSVIEW_TickCnt; /* tick counter for Segger SystemViewer */
+#endif
 #if (configCOMPILER==configCOMPILER_ARM_KEIL)
 #if configPEX_KINETIS_SDK /* the SDK expects different interrupt handler names */
 void SysTick_Handler(void) {
@@ -1463,6 +1513,9 @@ void vPortTickHandler(void) {
                                               bl vPortTickHandler
                                               pop {r4,pc}
   */
+#if configUSE_SEGGER_SYSTEM_VIEWER_HOOKS && configCPU_FAMILY==configCPU_FAMILY_ARM_M0P
+  SEGGER_SYSVIEW_TickCnt++; /* tick counter for Segger SystemViewer */
+#endif
 #if configUSE_TICKLESS_IDLE == 1
   TICK_INTERRUPT_FLAG_SET();
 #endif
@@ -1591,6 +1644,9 @@ PE_ISR(RTOSTICKLDD1_Interrupt)
 #endif
 %endif -% useARMSysTickTimer='no'
   ACKNOWLEDGE_TICK_ISR();
+#if configUSE_SEGGER_SYSTEM_VIEWER_HOOKS && configCPU_FAMILY==configCPU_FAMILY_ARM_M0P
+  SEGGER_SYSVIEW_TickCnt++; /* tick counter for Segger SystemViewer */
+#endif
 #if configUSE_TICKLESS_IDLE == 1
   TICK_INTERRUPT_FLAG_SET();
 #endif
@@ -1669,6 +1725,13 @@ __asm void vPortStartFirstTask(void) {
 /*-----------------------------------------------------------*/
 #if (configCOMPILER==configCOMPILER_ARM_GCC)
 void vPortStartFirstTask(void) {
+#if 1 /* only needed for openOCD thread awareness. It needs the symbol uxTopUsedPriority present after linking */
+  {
+    extern volatile const int uxTopUsedPriority;
+    __attribute__((__unused__)) volatile uint8_t dummy_value_for_openocd;
+    dummy_value_for_openocd = uxTopUsedPriority;
+  }
+#endif
   __asm volatile (
     " ldr r0, =0xE000ED08 \n" /* Use the NVIC offset register to locate the stack. */
     " ldr r0, [r0]        \n" /* load address of vector table */
@@ -1798,8 +1861,8 @@ __asm volatile (
   );
 #endif
 }
+#endif /* (configCOMPILER==configCOMPILER_ARM_GCC) */
 /*-----------------------------------------------------------*/
-#endif
 #if (configCOMPILER==configCOMPILER_ARM_KEIL)
 #if configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* Cortex M4 */
 #if configPEX_KINETIS_SDK /* the SDK expects different interrupt handler names */
@@ -1825,7 +1888,7 @@ __asm void vPortPendSVHandler(void) {
 #endif
   str r0, [r2]               /* Save the new top of stack into the first member of the TCB. */
   stmdb sp!, {r3, r14}
-  mov r0, #0
+  mov r0, #configMAX_SYSCALL_INTERRUPT_PRIORITY
   msr basepri, r0
   bl vTaskSwitchContext
   mov r0, #0
@@ -1892,10 +1955,12 @@ __asm void vPortPendSVHandler(void) {
   nop
 }
 #endif
-#endif
+#endif /* (configCOMPILER==configCOMPILER_ARM_KEIL) */
 /*-----------------------------------------------------------*/
 #if (configCOMPILER==configCOMPILER_ARM_GCC)
-#if configPEX_KINETIS_SDK /* the SDK expects different interrupt handler names */
+#if configGDB_HELPER
+__attribute__ ((naked)) void vPortPendSVHandler_native(void) {
+#elif configPEX_KINETIS_SDK /* the SDK expects different interrupt handler names */
 __attribute__ ((naked)) void PendSV_Handler(void) {
 #else
 __attribute__ ((naked)) void vPortPendSVHandler(void) {
@@ -1937,7 +2002,7 @@ __attribute__ ((naked)) void vPortPendSVHandler(void) {
     "                            \n"
     " .align 2                   \n"
     "pxCurrentTCBConst: .word pxCurrentTCB  \n"
-    ::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY)
+      ::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY)
   );
 #else /* Cortex M0+ */
   __asm volatile (
@@ -1982,77 +2047,221 @@ __attribute__ ((naked)) void vPortPendSVHandler(void) {
   );
 #endif
 }
+
+/* This is only really needed for debugging with openOCD:
+ * Since at least FreeRTOS V7.5.3 uxTopUsedPriority is no longer
+ * present in the kernel, so it has to be supplied by other means for
+ * OpenOCD's threads awareness.
+ *
+ * Add this file to your project, and, if you're using --gc-sections,
+ * ``--undefined=uxTopUsedPriority'' (or
+ * ``-Wl,--undefined=uxTopUsedPriority'' when using gcc for final
+ * linking) to your LDFLAGS; same with all the other symbols you need.
+ */
+volatile const int
+#ifdef __GNUC__
+__attribute__((used))
 #endif
+uxTopUsedPriority = configMAX_PRIORITIES;
+
+#if configGDB_HELPER /* if GDB debug helper is enabled */
+/* Credits to:
+ * - Artem Pisarneko for his initial contribution
+ * - Prasana for the PendSVHandler updates
+ * - Geoffrey Wossum for the Cortex-M4 contribution
+ */
+
+/* Switch control variable:
+ * 0 - no hook installed (normal execution),
+ * 1 - hook installation performed,
+ * 2 - following hooked switches
+ */
+int volatile dbgPendSVHookState = 0;
+/* Requested target task handle variable */
+void *volatile dbgPendingTaskHandle;
+
+const int volatile dbgFreeRTOSConfig_suspend_value = INCLUDE_vTaskSuspend;
+const int volatile dbgFreeRTOSConfig_delete_value = INCLUDE_vTaskDelete;
+
+void __attribute__ ((naked)) PendSV_Handler_jumper(void) {
+  __asm volatile("b vPortPendSVHandler_native \n");
+}
+
+#if configPEX_KINETIS_SDK /* the SDK expects different interrupt handler names */
+__attribute__ ((naked)) void PendSV_Handler(void) {
+#else
+__attribute__ ((naked)) void vPortPendSVHandler(void) {
+#endif
+#if configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* Cortex M4 */
+  __asm volatile (
+#if configGDB_HELPER
+    " ldr r1, _dbgPendSVHookState    \n" /* Check hook installed */
+    " ldr r0, [r1]                   \n"
+    " cmp r0, #0                     \n"
+    " beq PendSV_Handler_jumper      \n" /* if no hook installed then jump to native handler, else proceed... */
+    " cmp r0, #1                     \n" /* check whether hook triggered for the first time...  */
+    " bne dbg_switch_to_pending_task \n" /* if not so, then jump to switching right now, otherwise current task context must be saved first...  */
+    " mov r0, #2                     \n" /* mark hook after triggered for the first time */
+    " str r0, [r1]                   \n"
+#endif /* configGDB_HELPER */
+    " mrs r0, psp                \n"
+    " ldr  r3, pxCurrentTCBConstG \n" /* Get the location of the current TCB. */
+    " ldr  r2, [r3]              \n"
+#if (configCPU_FAMILY==configCPU_FAMILY_ARM_M4F)
+    " tst r14, #0x10             \n" /* Is the task using the FPU context?  If so, push high vfp registers. */
+    " it eq                      \n"
+    " vstmdbeq r0!, {s16-s31}    \n"
+
+    " stmdb r0!, {r4-r11, r14}   \n" /* save remaining core registers */
+#else
+    " stmdb r0!, {r4-r11}        \n" /* Save the core registers. */
+#endif
+    " str r0, [r2]               \n" /* Save the new top of stack into the first member of the TCB. */
+    " stmdb sp!, {r3, r14}       \n"
+    " mov r0, %%0                 \n"
+    " msr basepri, r0            \n"
+    " bl vTaskSwitchContext      \n"
+    " mov r0, #0                 \n"
+    " msr basepri, r0            \n"
+    " ldmia sp!, {r3, r14}       \n"
+#if configGDB_HELPER
+    "dbg_switch_to_pending_task:     \n"
+    " ldr r3, _dbgPendingTaskHandle  \n" /* --> Load task handle going to switch to <-- */
+#endif /* configGDB_HELPER */
+    " ldr r1, [r3]               \n" /* The first item in pxCurrentTCB is the task top of stack. */
+    " ldr r0, [r1]               \n"
+#if (configCPU_FAMILY==configCPU_FAMILY_ARM_M4F)
+    " ldmia r0!, {r4-r11, r14}   \n" /* Pop the core registers */
+    " tst r14, #0x10             \n" /* Is the task using the FPU context?  If so, pop the high vfp registers too. */
+    " it eq                      \n"
+    " vldmiaeq r0!, {s16-s31}    \n"
+#else
+    " ldmia r0!, {r4-r11}        \n" /* Pop the core registers. */
+#endif
+    " msr psp, r0                \n"
+#if configGDB_HELPER
+    " bkpt                       \n" /* <-- here debugger stops and steps out to target task context */
+#endif /* configGDB_HELPER */
+    " bx r14                     \n"
+    "                            \n"
+    " .align 2                   \n"
+    "pxCurrentTCBConstG: .word pxCurrentTCB  \n"
+#if configGDB_HELPER
+    "_dbgPendSVHookState: .word dbgPendSVHookState     \n"
+    "_dbgPendingTaskHandle: .word dbgPendingTaskHandle \n"
+    ".word dbgFreeRTOSConfig_suspend_value             \n" /* force keep these symbols from cutting away by linker garbage collector */
+    ".word dbgFreeRTOSConfig_delete_value              \n"
+#endif
+      ::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY)
+  );
+#else /* Cortex M0+ */
+  __asm volatile (
+    " mrs r0, psp                \n"
+    "                            \n"
+    " ldr r3, pxCurrentTCBConstG  \n" /* Get the location of the current TCB. */
+    " ldr r2, [r3]   \n"
+    "                            \n"
+    " sub r0, r0, #32            \n" /* Make space for the remaining low registers. */
+    " str r0, [r2]               \n" /* Save the new top of stack. */
+    " stmia r0!, {r4-r7}         \n" /* Store the low registers that are not saved automatically. */
+    " mov r4, r8                 \n" /* Store the high registers. */
+    " mov r5, r9                 \n"
+    " mov r6, r10                \n"
+    " mov r7, r11                \n"
+    " stmia r0!, {r4-r7}         \n"
+    "                            \n"
+    " push {r3, r14}             \n"
+    " cpsid i                    \n"
+    " bl vTaskSwitchContext      \n"
+    " cpsie i                    \n"
+    " pop {r2, r3}               \n" /* lr goes in r3. r2 now holds tcb pointer. */
+    "                            \n"
+    " ldr r1, [r2]               \n"
+    " ldr r0, [r1]               \n" /* The first item in pxCurrentTCB is the task top of stack. */
+    " add r0, r0, #16            \n" /* Move to the high registers. */
+    " ldmia r0!, {r4-r7}         \n" /* Pop the high registers. */
+    " mov r8, r4                 \n"
+    " mov r9, r5                 \n"
+    " mov r10, r6                \n"
+    " mov r11, r7                \n"
+    "                            \n"
+    " msr psp, r0                \n" /* Remember the new top of stack for the task. */
+    "                            \n"
+    " sub r0, r0, #32            \n" /* Go back for the low registers that are not automatically restored. */
+    " ldmia r0!, {r4-r7}         \n" /* Pop low registers.  */
+    "                            \n"
+    " bx r3                      \n"
+    "                            \n"
+    ".align 2                    \n"
+    "pxCurrentTCBConstG: .word pxCurrentTCB"
+  );
+#endif
+}
+
+#endif /* configGDB_HELPER */
+
+#endif /* (configCOMPILER==configCOMPILER_ARM_GCC) */
 /*-----------------------------------------------------------*/
-#if 0 /* NYI */ && configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* ARM M4(F) core */
+#if configCPU_FAMILY_IS_ARM_M4(configCPU_FAMILY) /* ARM M4(F) core */
 #if( configASSERT_DEFINED == 1 )
 
-/*
- * Used by the portASSERT_IF_INTERRUPT_PRIORITY_INVALID() macro to ensure
- * FreeRTOS API functions are not called from interrupts that have been assigned
- * a priority above configMAX_SYSCALL_INTERRUPT_PRIORITY.
- */
-#if ( configASSERT_DEFINED == 1 )
-     static uint8_t ucMaxSysCallPriority = 0;
-     static uint32_t ulMaxPRIGROUPValue = 0;
-     static const volatile uint8_t * const pcInterruptPriorityRegisters = ( const volatile uint8_t * const ) portNVIC_IP_REGISTERS_OFFSET_16;
-#endif /* configASSERT_DEFINED */
+  void vPortValidateInterruptPriority( void )
+  {
+  uint32_t ulCurrentInterrupt;
+  uint8_t ucCurrentPriority;
 
-    void vPortValidateInterruptPriority( void )
+    /* Obtain the number of the currently executing interrupt. */
+    __asm volatile( "mrs %%0, ipsr" : "=r"( ulCurrentInterrupt ) );
+
+    /* Is the interrupt number a user defined interrupt? */
+    if( ulCurrentInterrupt >= portFIRST_USER_INTERRUPT_NUMBER )
     {
-    uint32_t ulCurrentInterrupt;
-    uint8_t ucCurrentPriority;
+      /* Look up the interrupt's priority. */
+      ucCurrentPriority = pcInterruptPriorityRegisters[ ulCurrentInterrupt ];
 
-        /* Obtain the number of the currently executing interrupt. */
-        __asm volatile( "mrs %%0, ipsr" : "=r"( ulCurrentInterrupt ) );
+      /* The following assertion will fail if a service routine (ISR) for
+      an interrupt that has been assigned a priority above
+      configMAX_SYSCALL_INTERRUPT_PRIORITY calls an ISR safe FreeRTOS API
+      function.  ISR safe FreeRTOS API functions must *only* be called
+      from interrupts that have been assigned a priority at or below
+      configMAX_SYSCALL_INTERRUPT_PRIORITY.
 
-        /* Is the interrupt number a user defined interrupt? */
-        if( ulCurrentInterrupt >= portFIRST_USER_INTERRUPT_NUMBER )
-        {
-            /* Look up the interrupt's priority. */
-            ucCurrentPriority = pcInterruptPriorityRegisters[ ulCurrentInterrupt ];
+      Numerically low interrupt priority numbers represent logically high
+      interrupt priorities, therefore the priority of the interrupt must
+      be set to a value equal to or numerically *higher* than
+      configMAX_SYSCALL_INTERRUPT_PRIORITY.
 
-            /* The following assertion will fail if a service routine (ISR) for
-            an interrupt that has been assigned a priority above
-            configMAX_SYSCALL_INTERRUPT_PRIORITY calls an ISR safe FreeRTOS API
-            function.  ISR safe FreeRTOS API functions must *only* be called
-            from interrupts that have been assigned a priority at or below
-            configMAX_SYSCALL_INTERRUPT_PRIORITY.
+      Interrupts that use the FreeRTOS API must not be left at their
+      default priority of zero as that is the highest possible priority,
+      which is guaranteed to be above configMAX_SYSCALL_INTERRUPT_PRIORITY,
+      and therefore also guaranteed to be invalid.
 
-            Numerically low interrupt priority numbers represent logically high
-            interrupt priorities, therefore the priority of the interrupt must
-            be set to a value equal to or numerically *higher* than
-            configMAX_SYSCALL_INTERRUPT_PRIORITY.
+      FreeRTOS maintains separate thread and ISR API functions to ensure
+      interrupt entry is as fast and simple as possible.
 
-            Interrupts that use the FreeRTOS API must not be left at their
-            default priority of zero as that is the highest possible priority,
-            which is guaranteed to be above configMAX_SYSCALL_INTERRUPT_PRIORITY,
-            and therefore also guaranteed to be invalid.
-
-            FreeRTOS maintains separate thread and ISR API functions to ensure
-            interrupt entry is as fast and simple as possible.
-
-            The following links provide detailed information:
-            http://www.freertos.org/RTOS-Cortex-M3-M4.html
-            http://www.freertos.org/FAQHelp.html */
-            configASSERT( ucCurrentPriority >= ucMaxSysCallPriority );
-        }
-
-        /* Priority grouping:  The interrupt controller (NVIC) allows the bits
-        that define each interrupt's priority to be split between bits that
-        define the interrupt's pre-emption priority bits and bits that define
-        the interrupt's sub-priority.  For simplicity all bits must be defined
-        to be pre-emption priority bits.  The following assertion will fail if
-        this is not the case (if some bits represent a sub-priority).
-
-        If the application only uses CMSIS libraries for interrupt
-        configuration then the correct setting can be achieved on all Cortex-M
-        devices by calling NVIC_SetPriorityGrouping( 0 ); before starting the
-        scheduler.  Note however that some vendor specific peripheral libraries
-        assume a non-zero priority group setting, in which cases using a value
-        of zero will result in unpredicable behaviour. */
-        configASSERT( ( portAIRCR_REG & portPRIORITY_GROUP_MASK ) <= ulMaxPRIGROUPValue );
+      The following links provide detailed information:
+      http://www.freertos.org/RTOS-Cortex-M3-M4.html
+      http://www.freertos.org/FAQHelp.html */
+      configASSERT( ucCurrentPriority >= ucMaxSysCallPriority );
     }
 
+    /* Priority grouping:  The interrupt controller (NVIC) allows the bits
+    that define each interrupt's priority to be split between bits that
+    define the interrupt's pre-emption priority bits and bits that define
+    the interrupt's sub-priority.  For simplicity all bits must be defined
+    to be pre-emption priority bits.  The following assertion will fail if
+    this is not the case (if some bits represent a sub-priority).
+
+    If the application only uses CMSIS libraries for interrupt
+    configuration then the correct setting can be achieved on all Cortex-M
+    devices by calling NVIC_SetPriorityGrouping( 0 ); before starting the
+    scheduler.  Note however that some vendor specific peripheral libraries
+    assume a non-zero priority group setting, in which cases using a value
+    of zero will result in unpredicable behaviour. */
+    configASSERT( ( portAIRCR_REG & portPRIORITY_GROUP_MASK ) <= ulMaxPRIGROUPValue );
+  }
+
 #endif /* configASSERT_DEFINED */
+
+
 #endif /* ARM M4(F) core */ 

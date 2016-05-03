@@ -2,9 +2,9 @@
 <Bean>
   <Header>
     <Name>FreeRTOS</Name>
-    <Description>FreeRTOS</Description>
+    <Description>FreeRTOS McuOnEclipse Port with FreeRTOS+Trace</Description>
     <Author>Erich Styger</Author>
-    <Version>01.410</Version>
+    <Version>01.455</Version>
     <Icon>FreeRTOS</Icon>
     <TypesFiles>PE,FreeRTOS\FreeRTOS</TypesFiles>
     <FileVersion>6</FileVersion>
@@ -18,10 +18,10 @@
     <BW_AutoSaveDriver>yes</BW_AutoSaveDriver>
     <BW_DetailedHelp>yes</BW_DetailedHelp>
     <BW_NeedTps>yes</BW_NeedTps>
-    <BW_NeedUst>20</BW_NeedUst>
+    <BW_NeedUst>21</BW_NeedUst>
     <BW_NeedCns>0</BW_NeedCns>
     <BeanStatus>PROPOSAL</BeanStatus>
-    <Copyright>License : Open Source (LGPL)\nFreeRTOS (c) Copyright 2003-2014 Richard Barry, http: www.FreeRTOS.org\nFreeRTOS Processor Expert Component: (c) Copyright Erich Styger, 2013\nProcessor Expert and CodeWarrior (c) Copyright Freescale Semiconductor, 2013, all rights reserved\nThis is a free software and is opened for education, research and commercial developments under license policy of following terms:\n* This is a free software and there is NO WARRANTY.\n* No restriction on use. You can use, modify and redistribute it for personal, non-profit or commercial product UNDER YOUR RESPONSIBILITY.\n* Redistributions of source code must retain the above copyright notice.</Copyright>
+    <Copyright>License : Open Source (LGPL)\nFreeRTOS (c) Copyright 2003-2015 Richard Barry, http: www.FreeRTOS.org\nFreeRTOS Processor Expert Component: (c) Copyright Erich Styger, 2013-2015\nProcessor Expert and CodeWarrior (c) Copyright Freescale Semiconductor, 2013-2015, all rights reserved\nThis is a free software and is opened for education, research and commercial developments under license policy of following terms:\n* This is a free software and there is NO WARRANTY.\n* No restriction on use. You can use, modify and redistribute it for personal, non-profit or commercial product UNDER YOUR RESPONSIBILITY.\n* Redistributions of source code must retain the above copyright notice.</Copyright>
     <Shortcut>FRTOS</Shortcut>
     <DemoDriver>no</DemoDriver>
     <BeanLevel>High</BeanLevel>
@@ -45,22 +45,90 @@
         <Hint>Identifies the RTOS version</Hint>
         <ItemLevel>BASIC</ItemLevel>
         <EditLine>true</EditLine>
-        <DefaultValue>V8.2.0</DefaultValue>
+        <DefaultValue>V8.2.3</DefaultValue>
         <StrDefine>nothing</StrDefine>
         <MinLength>0</MinLength>
         <MaxLength>-1</MaxLength>
       </TStrgItem>
     </Property>
     <Property>
+      <TInhrLinkItem>
+        <Name>Kinetis SDK</Name>
+        <Symbol>KinetisSDK</Symbol>
+        <TypeSpec>FreeRTOS\KinetisSDK</TypeSpec>
+        <Hint>Link to Kinetis SDK component which maps Processor Expert types like byte to uint8_t.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <DefaultValue/>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <SortStyle/>
+      </TInhrLinkItem>
+    </Property>
+    <Property>
+      <TBoolGrupItem>
+        <Name>Kinetis SDK</Name>
+        <Symbol>KinetisSDKGroup</Symbol>
+        <TypeSpec>typeEnaDis</TypeSpec>
+        <Hint>Group used to configure the component if used with the Kinetis SDK.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <BoldName>true</BoldName>
+        <EditLine>false</EditLine>
+        <Description>Disabled</Description>
+        <Expanded>No</Expanded>
+        <DefaultValue>false</DefaultValue>
+        <DefineSymbol>YES_NO</DefineSymbol>
+        <IfDisabled>setNOTHING</IfDisabled>
+        <Children>
+          <GrupItem>
+            <TBoolItem>
+              <Name>Generate PEX_RTOS Macros</Name>
+              <Symbol>GenerateRTOSPExMacros</Symbol>
+              <TypeSpec>typeYesNo</TypeSpec>
+              <Hint>If enabled, the component creates PEX_RTOS_INIT() and PEX_RTOS_START() macros in the component header file. As the Kinetis SDK does generate them, the default setting is 'no', otherwise macros will be defined twice.</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>1</DefaultIndex>
+              <TextValueIndex>false</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <DefaultValue>false</DefaultValue>
+              <Popup>false</Popup>
+            </TBoolItem>
+          </GrupItem>
+          <GrupItem>
+            <TBoolItem>
+              <Name>Generate OSA Functions</Name>
+              <Symbol>GenerateOSAFunctions</Symbol>
+              <TypeSpec>typeYesNo</TypeSpec>
+              <Hint>If enabled, the component creates OSA_Init() and OSA_Start() functions which are needed for the OS Adaption layer of the Kinetis SDK.</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>1</DefaultIndex>
+              <TextValueIndex>false</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <DefaultValue>false</DefaultValue>
+              <Popup>false</Popup>
+            </TBoolItem>
+          </GrupItem>
+        </Children>
+      </TBoolGrupItem>
+    </Property>
+    <Property>
       <TGrupItem>
         <Name>Custom Port</Name>
         <Symbol>CustomPortGroup</Symbol>
-        <Hint>Allows custom settings for FreeRTOS port</Hint>
+        <Hint>Allows custom settings for FreeRTOS port. Only necessary to generate RTOS source code and then use it without Processor Expert project.</Hint>
         <ItemLevel>EXPERT</ItemLevel>
         <BoldName>true</BoldName>
         <EditLine>false</EditLine>
         <Description>Custom port settings</Description>
-        <Expanded>Yes</Expanded>
+        <Expanded>No</Expanded>
         <Children>
           <GrupItem>
             <TEnumItem>
@@ -249,56 +317,6 @@ This is defined to be the most efficient, natural, type for the architecture. Fo
       </TGrupItem>
     </Property>
     <Property>
-      <TBoolGrupItem>
-        <Name>Kinetis SDK</Name>
-        <Symbol>KinetisSDKGroup</Symbol>
-        <TypeSpec>typeEnaDis</TypeSpec>
-        <Hint>Group used to configure the component for the Kinetis SDK</Hint>
-        <ItemLevel>BASIC</ItemLevel>
-        <BoldName>true</BoldName>
-        <EditLine>false</EditLine>
-        <Description>Disabled</Description>
-        <Expanded>No</Expanded>
-        <DefaultValue>false</DefaultValue>
-        <DefineSymbol>YES_NO</DefineSymbol>
-        <IfDisabled>setNOTHING</IfDisabled>
-        <Children>
-          <GrupItem>
-            <TBoolItem>
-              <Name>Generate RTOS PEx Macros</Name>
-              <Symbol>GenerateRTOSPExMacros</Symbol>
-              <TypeSpec>typeYesNo</TypeSpec>
-              <Hint>If enabled, the component creates PEX_RTOS_INIT() and PEX_RTOS_START() macros in the component header file.</Hint>
-              <ItemLevel>BASIC</ItemLevel>
-              <EditLine>false</EditLine>
-              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
-              <DefaultIndex>1</DefaultIndex>
-              <TextValueIndex>false</TextValueIndex>
-              <RuntimeProperty>false</RuntimeProperty>
-              <CanDelete>false</CanDelete>
-              <IconPopup>false</IconPopup>
-              <DefaultValue>false</DefaultValue>
-              <Popup>false</Popup>
-            </TBoolItem>
-          </GrupItem>
-          <GrupItem>
-            <TInhrLinkItem>
-              <Name>Kinetis SDK</Name>
-              <Symbol>KinetisSDK</Symbol>
-              <TypeSpec>FreeRTOS\KinetisSDK</TypeSpec>
-              <Hint>Link to Kinetis SDK component</Hint>
-              <ItemLevel>BASIC</ItemLevel>
-              <EditLine>false</EditLine>
-              <DefaultValue/>
-              <CanDelete>false</CanDelete>
-              <IconPopup>false</IconPopup>
-              <SortStyle/>
-            </TInhrLinkItem>
-          </GrupItem>
-        </Children>
-      </TBoolGrupItem>
-    </Property>
-    <Property>
       <TBoolItem>
         <Name>Classic CodeWarrior</Name>
         <Symbol>IsClassicCW</Symbol>
@@ -354,6 +372,24 @@ This is defined to be the most efficient, natural, type for the architecture. Fo
     </Property>
     <Property>
       <TBoolItem>
+        <Name>Enable GDB Debug Helper</Name>
+        <Symbol>EnableGDBDebugHelper</Symbol>
+        <TypeSpec>typeYesNo</TypeSpec>
+        <Hint>If enabled, a debug helper for GDB is enabled to do thread stack debugging with a special vPortPendSVHandler(). This setting configures the configGDB_HELPER macro. </Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>1</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>false</DefaultValue>
+        <Popup>false</Popup>
+      </TBoolItem>
+    </Property>
+    <Property>
+      <TBoolItem>
         <Name>Application Task Tags</Name>
         <Symbol>UseApplicationTaskTags</Symbol>
         <TypeSpec>typeYesNo</TypeSpec>
@@ -369,6 +405,23 @@ This is defined to be the most efficient, natural, type for the architecture. Fo
         <DefaultValue>false</DefaultValue>
         <Popup>false</Popup>
       </TBoolItem>
+    </Property>
+    <Property>
+      <TIntgItem>
+        <Name>Thread Local Storage Pointers</Name>
+        <Symbol>NumThreadLocalStoragePointers</Symbol>
+        <Hint>Number of thread local storage pointers, zero to disable functionality. Defines configNUM_THREAD_LOCAL_STORAGE_POINTERS</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>true</EditLine>
+        <DefaultValue>0</DefaultValue>
+        <MinValue>0</MinValue>
+        <MaxValue>-1</MaxValue>
+        <Bases>DEC</Bases>
+        <DefaultBase>DEC</DefaultBase>
+        <ExtraHintDisabled>false</ExtraHintDisabled>
+        <ChangeValueIntoRange>false</ChangeValueIntoRange>
+        <RuntimeProperty>false</RuntimeProperty>
+      </TIntgItem>
     </Property>
     <Property>
       <TBoolItem>
@@ -390,10 +443,42 @@ This is defined to be the most efficient, natural, type for the architecture. Fo
     </Property>
     <Property>
       <TBoolGrupItem>
-        <Name>Trace Hooks</Name>
+        <Name>Segger System Viewer Trace</Name>
+        <Symbol>SeggerSystemViewerGroup</Symbol>
+        <TypeSpec>typeEnaDis</TypeSpec>
+        <Hint>Enables Segger System Viewer Trace. Percepio Trace has to be disabled, and 'Use Trace Facility' has to be enabled.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <BoldName>true</BoldName>
+        <EditLine>false</EditLine>
+        <Description>Disabled</Description>
+        <Expanded>No</Expanded>
+        <DefaultValue>false</DefaultValue>
+        <DefineSymbol>YES_NO</DefineSymbol>
+        <IfDisabled>setNOTHING</IfDisabled>
+        <Children>
+          <GrupItem>
+            <TInhrLinkItem>
+              <Name>Segger System Viewer</Name>
+              <Symbol>SeggerSystemViewer</Symbol>
+              <TypeSpec>FreeRTOS\SeggerSystemView</TypeSpec>
+              <Hint>Link to Segger System Viewer component</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <DefaultValue/>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <SortStyle/>
+            </TInhrLinkItem>
+          </GrupItem>
+        </Children>
+      </TBoolGrupItem>
+    </Property>
+    <Property>
+      <TBoolGrupItem>
+        <Name>Percepio Trace</Name>
         <Symbol>UseTraceHooksGroup</Symbol>
         <TypeSpec>typeEnaDis</TypeSpec>
-        <Hint>If enabled, you can condfigure trace hooks to collect information about the RTOS behaviour.</Hint>
+        <Hint>If enabled, you can condfigure trace hooks to collect information about the RTOS behaviour. Segger System Viewer has to be disabled.</Hint>
         <ItemLevel>BASIC</ItemLevel>
         <BoldName>true</BoldName>
         <EditLine>false</EditLine>
@@ -711,24 +796,6 @@ Mapping for number to vector for the MCF52259:\n
                   </TEnumItem>
                 </GrupItem>
                 <GrupItem>
-                  <TBoolItem>
-                    <Name>Floating Point Support</Name>
-                    <Symbol>M4FFloatingPointSupport</Symbol>
-                    <TypeSpec>typeYesNo</TypeSpec>
-                    <Hint>If enabled, the port is supporting the different stack frame created by the Cortex M4F</Hint>
-                    <ItemLevel>BASIC</ItemLevel>
-                    <EditLine>false</EditLine>
-                    <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
-                    <DefaultIndex>1</DefaultIndex>
-                    <TextValueIndex>false</TextValueIndex>
-                    <RuntimeProperty>false</RuntimeProperty>
-                    <CanDelete>false</CanDelete>
-                    <IconPopup>false</IconPopup>
-                    <DefaultValue>false</DefaultValue>
-                    <Popup>false</Popup>
-                  </TBoolItem>
-                </GrupItem>
-                <GrupItem>
                   <TIntgItem>
                     <Name>Max SysCall Interrupt Priority</Name>
                     <Symbol>KinetisLibraryMaxInterruptPriority</Symbol>
@@ -894,6 +961,24 @@ The highest interrupt priority that can be used by any interrupt service routine
               <Symbol>UsePreemption</Symbol>
               <TypeSpec>typeYesNo</TypeSpec>
               <Hint>Set to 1 to use the preemptive kernel, or 0 to use the cooperative kernel. (configUSE_PREEMPTION flag)</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>0</DefaultIndex>
+              <TextValueIndex>false</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <DefaultValue>true</DefaultValue>
+              <Popup>false</Popup>
+            </TBoolItem>
+          </GrupItem>
+          <GrupItem>
+            <TBoolItem>
+              <Name>Time Slicing</Name>
+              <Symbol>UseTimeSlicing</Symbol>
+              <TypeSpec>typeYesNo</TypeSpec>
+              <Hint>Set to 1 (default) time will be time slices among the ready high priority tasks of same priority (configUSE_TIME_SLICING flag)</Hint>
               <ItemLevel>BASIC</ItemLevel>
               <EditLine>false</EditLine>
               <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
@@ -1084,7 +1169,7 @@ To use this method in combination with method 1 set configCHECK_FOR_STACK_OVERFL
         <BoldName>true</BoldName>
         <EditLine>false</EditLine>
         <Description>Settings for the periodic tick timer</Description>
-        <Expanded>No</Expanded>
+        <Expanded>Yes</Expanded>
         <Children>
           <GrupItem>
             <TBoolGrupItem>
@@ -1444,7 +1529,7 @@ configQUEUE_REGISTRY_SIZE defines the maximum number of queues and semaphores th
               <Hint>configures the value of configTIMER_TASK_STACK_DEPTH which defines the stack size for the timer task</Hint>
               <ItemLevel>BASIC</ItemLevel>
               <EditLine>true</EditLine>
-              <DefaultValue>100</DefaultValue>
+              <DefaultValue>200</DefaultValue>
               <MinValue>1</MinValue>
               <MaxValue>-1</MaxValue>
               <Bases>DEC</Bases>
@@ -1466,8 +1551,26 @@ configQUEUE_REGISTRY_SIZE defines the maximum number of queues and semaphores th
         <BoldName>true</BoldName>
         <EditLine>false</EditLine>
         <Description>Settings for the memory and heap allocation</Description>
-        <Expanded>No</Expanded>
+        <Expanded>Yes</Expanded>
         <Children>
+          <GrupItem>
+            <TBoolItem>
+              <Name>Application allocated Heap</Name>
+              <Symbol>ApplicationAllocatedHeap</Symbol>
+              <TypeSpec>typeYesNo</TypeSpec>
+              <Hint>Configures configAPPLICATION_ALLOCATED_HEAP in FreeRTOSConfig.h. If set to yes, the application needs to define the heap memory variable, e.g. to use special segment attributes.</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>1</DefaultIndex>
+              <TextValueIndex>false</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <DefaultValue>false</DefaultValue>
+              <Popup>false</Popup>
+            </TBoolItem>
+          </GrupItem>
           <GrupItem>
             <TEnumItem>
               <Name>Memory Allocation Scheme</Name>
@@ -1490,7 +1593,7 @@ This scheme allows the heap to be defined across multiple non-contigous blocks a
               <ItemLevel>BASIC</ItemLevel>
               <EditLine>true</EditLine>
               <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
-              <DefaultIndex>1</DefaultIndex>
+              <DefaultIndex>3</DefaultIndex>
               <TextValueIndex>true</TextValueIndex>
               <RuntimeProperty>false</RuntimeProperty>
               <CanDelete>false</CanDelete>
@@ -1532,7 +1635,7 @@ This scheme allows the heap to be defined across multiple non-contigous blocks a
             <TIntgItem>
               <Name>Total Heap Size</Name>
               <Symbol>TotalHeapSize</Symbol>
-              <Hint>The total amount of RAM available to the kernel. This value is used by the memory allocation schemes.</Hint>
+              <Hint>The total amount of RAM available to the kernel. This value is used by the memory allocation schemes. Value not used if using Scheme3 (malloc/free).</Hint>
               <ItemLevel>BASIC</ItemLevel>
               <EditLine>true</EditLine>
               <DefaultValue>2048</DefaultValue>
@@ -1554,11 +1657,11 @@ This scheme allows the heap to be defined across multiple non-contigous blocks a
         <Symbol>RTOSAdaptorGrp</Symbol>
         <TypeSpec>typeYesNo</TypeSpec>
         <Hint>Contains the RTOS specific settings. RTOS adaptor is a part of RTOS component which handles the integration of HAL into specific RTOS.</Hint>
-        <ItemLevel>@ HIDDEN @</ItemLevel>
+        <ItemLevel>EXPERT</ItemLevel>
         <BoldName>true</BoldName>
         <EditLine>false</EditLine>
         <Description>Configures the RTOS adapter settings</Description>
-        <Expanded>No</Expanded>
+        <Expanded>Yes</Expanded>
         <Children>
           <GrupItem>
             <TGrupItem>
@@ -1722,7 +1825,7 @@ This scheme allows the heap to be defined across multiple non-contigous blocks a
         <Name>Shell</Name>
         <Symbol>ShellEnabled</Symbol>
         <TypeSpec>typeEnaDis</TypeSpec>
-        <Hint>If shell support shall be added or not</Hint>
+        <Hint>If shell support shall be added or not. If enabled, will enable 'Use Trace Facility' (configUSE_TRACE_FACILITY).</Hint>
         <ItemLevel>BASIC</ItemLevel>
         <BoldName>true</BoldName>
         <EditLine>false</EditLine>
@@ -2737,12 +2840,14 @@ xSemaphoreGive() is part of the fully featured intertask communications API. xSe
 \n
 Binary semaphores and mutexes are very similar but have some subtle differences: Mutexes include a priority inheritance mechanism, binary semaphores do not. This makes binary semaphores the better choice for implementing synchronisation (between tasks or between tasks and an interrupt), and mutexes the better choice for implementing simple mutual exclusion.\n
 \n
+This old vSemaphoreCreateBinary() macro is now deprecated in favour of the xSemaphoreCreateBinary() function.  Note that binary semaphores created using the vSemaphoreCreateBinary() macro are created in a state such that the first call to 'take' the semaphore would pass, whereas binary semaphores created using xSemaphoreCreateBinary() are created in a state such that the the semaphore must first be 'given' before it can be 'taken'.\n
+\n
 A binary semaphore need not be given back once obtained, so task synchronisation can be implemented by one task/interrupt continuously 'giving' the semaphore while another continuously 'takes' the semaphore. This is demonstrated by the sample code on the xSemaphoreGiveFromISR() documentation page.\n
 \n
 The priority of a task that 'takes' a mutex can potentially be raised if another task of higher priority attempts to obtain the same mutex. The task that owns the mutex 'inherits' the priority of the task attempting to 'take' the same mutex. This means the mutex must always be 'given' back - otherwise the higher priority task will never be able to obtain the mutex, and the lower priority task will never 'disinherit' the priority. An example of a mutex being used to implement mutual exclusion is provided on the xSemaphoreTake() documentation page.\n
 \n
 Both mutex and binary semaphores are assigned to variables of type xSemaphoreHandle and can be used in any API function that takes a parameter of this type. </Hint>
-        <ItemLevel>BASIC</ItemLevel>
+        <ItemLevel>@ HIDDEN @</ItemLevel>
         <EditLine>false</EditLine>
         <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
         <DefaultIndex>0</DefaultIndex>
@@ -2767,6 +2872,38 @@ Both mutex and binary semaphores are assigned to variables of type xSemaphoreHan
         <Scope>PRIVATE</Scope>
         <Declarations>
           <ANSIC>void #M#_#C#(xSemaphoreHandle xSemaphore)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>xSemaphoreCreateBinary</Name>
+        <Symbol>xSemaphoreCreateBinary</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>The old vSemaphoreCreateBinary() macro is now deprecated in favour of this xSemaphoreCreateBinary() function.  Note that binary semaphores created using the vSemaphoreCreateBinary() macro are created in a state such that the first call to 'take' the semaphore would pass, whereas binary semaphores created using xSemaphoreCreateBinary() are created in a state such that the the semaphore must first be 'given' before it can be 'taken'.\n
+\n
+Function that creates a semaphore by using the existing queue mechanism. The queue length is 1 as this is a binary semaphore.  The data size is 0 as nothing is actually stored - all that is important is whether the queue is empty or full (the binary semaphore is available or not).\n
+\n
+This type of semaphore can be used for pure synchronisation between tasks or between an interrupt and a task.  The semaphore need not be given back once obtained, so one task/interrupt can continuously 'give' the semaphore while another continuously 'takes' the semaphore.  For this reason this type of semaphore does not use a priority inheritance mechanism.  For an alternative that does use priority inheritance see xSemaphoreCreateMutex().</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>SemaphoreHandle_t</ReturnType>
+        <RetHint>Handle to the created semaphore.</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>SemaphoreHandle_t #M#_#C#(void)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -3205,12 +3342,12 @@ Task hook functions must have type pdTASK_HOOK_CODE, that is take a void * param
         <ItemLevel>BASIC</ItemLevel>
         <EditLine>false</EditLine>
         <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
-        <DefaultIndex>1</DefaultIndex>
+        <DefaultIndex>0</DefaultIndex>
         <TextValueIndex>false</TextValueIndex>
         <RuntimeProperty>false</RuntimeProperty>
         <CanDelete>false</CanDelete>
         <IconPopup>false</IconPopup>
-        <DefaultValue>false</DefaultValue>
+        <DefaultValue>true</DefaultValue>
         <Popup>false</Popup>
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
@@ -3233,12 +3370,12 @@ Task hook functions must have type pdTASK_HOOK_CODE, that is take a void * param
         <ItemLevel>BASIC</ItemLevel>
         <EditLine>false</EditLine>
         <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
-        <DefaultIndex>1</DefaultIndex>
+        <DefaultIndex>0</DefaultIndex>
         <TextValueIndex>false</TextValueIndex>
         <RuntimeProperty>false</RuntimeProperty>
         <CanDelete>false</CanDelete>
         <IconPopup>false</IconPopup>
-        <DefaultValue>false</DefaultValue>
+        <DefaultValue>true</DefaultValue>
         <Popup>false</Popup>
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
@@ -3261,12 +3398,12 @@ Task hook functions must have type pdTASK_HOOK_CODE, that is take a void * param
         <ItemLevel>BASIC</ItemLevel>
         <EditLine>false</EditLine>
         <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
-        <DefaultIndex>1</DefaultIndex>
+        <DefaultIndex>0</DefaultIndex>
         <TextValueIndex>false</TextValueIndex>
         <RuntimeProperty>false</RuntimeProperty>
         <CanDelete>false</CanDelete>
         <IconPopup>false</IconPopup>
-        <DefaultValue>false</DefaultValue>
+        <DefaultValue>true</DefaultValue>
         <Popup>false</Popup>
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
@@ -5855,6 +5992,134 @@ This function must not be called from an interrupt service routine (ISR). Use xT
     </Method>
     <Method>
       <TMthdItem>
+        <Name>xTaskNotifyAndQuery</Name>
+        <Symbol>xTaskNotifyAndQuery</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint> [If you are using RTOS task notifications to implement binary or counting semaphore type behaviour then use the simpler xTaskNotifyGive() API function instead of xTaskNotify()]\n
+\n
+Each RTOS task has a 32-bit notification value which is initialised to zero when the RTOS task is created. xTaskNotify() is used to send an event directly to and potentially unblock an RTOS task, and optionally update the receiving task's notification value in one of the following ways:\n
+\n
+    - Write a 32-bit number to the notification value\n
+    - Add one (increment) the notification value\n
+    - Set one or more bits in the notification value\n
+    - Leave the notification value unchanged\n
+\n
+This function must not be called from an interrupt service routine (ISR). Use xTaskNotifyFromISR() instead. </Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>BaseType_t</ReturnType>
+        <RetHint>pdPASS is returned in all cases other than when eAction is set to eSetValueWithoutOverwrite and the subject task's notification value cannot be updated because the subject task already had a notification pending. </RetHint>
+        <ParamCount>4</ParamCount>
+        <Parameter>
+          <ParName>xTaskToNotify</ParName>
+          <ParType>TaskHandle_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>The handle of the RTOS task being notified. This is the subject task.\n\nRTOS task handles are obtained using the pvCreatedTask parameter of the xTaskCreate() call used to create the task.\n\nThe handle of the currently executing RTOS task is returned by the xTaskGetCurrentTaskHandle() API function. </ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>ulValue</ParName>
+          <ParType>uint32_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Used to update the notification value of the subject task. See the description of the eAction parameter below. </ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>eAction</ParName>
+          <ParType>eNotifyAction</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>An enumerated type that can take one of the values documented in the table below in order to perform the associated action. </ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>pulPreviousNotifyValue</ParName>
+          <ParType>uint32_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Can be used to pass out the subject task's notification value before any bits are modified by the action of xTaskNotifyAndQuery().\n\npulPreviousNotifyValue is an optional parameter, and can be set to NULL if it is not required. If pulPreviousNotifyValue is not used then consider using xTaskNotify() in place of xTaskNotifyAndQuery(). </ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>BaseType_t #M#_#C#(TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *pulPreviousNotifyValue)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>xTaskNotifyAndQueryFromISR</Name>
+        <Symbol>xTaskNotifyAndQueryFromISR</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint> [If you are using RTOS task notifications to implement binary or counting semaphore type behaviour then use the simpler xTaskNotifyGive() API function instead of xTaskNotify()]\n
+\n
+Each RTOS task has a 32-bit notification value which is initialised to zero when the RTOS task is created. xTaskNotify() is used to send an event directly to and potentially unblock an RTOS task, and optionally update the receiving task's notification value in one of the following ways:\n
+\n
+    - Write a 32-bit number to the notification value\n
+    - Add one (increment) the notification value\n
+    - Set one or more bits in the notification value\n
+    - Leave the notification value unchanged\n
+\n
+This function must not be called from an interrupt service routine (ISR). Use xTaskNotifyFromISR() instead. </Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>BaseType_t</ReturnType>
+        <RetHint>pdPASS is returned in all cases other than when eAction is set to eSetValueWithoutOverwrite and the subject task's notification value cannot be updated because the subject task already had a notification pending. </RetHint>
+        <ParamCount>5</ParamCount>
+        <Parameter>
+          <ParName>xTaskToNotify</ParName>
+          <ParType>TaskHandle_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>The handle of the RTOS task being notified. This is the subject task.\n\nRTOS task handles are obtained using the pvCreatedTask parameter of the xTaskCreate() call used to create the task.\n\nThe handle of the currently executing RTOS task is returned by the xTaskGetCurrentTaskHandle() API function. </ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>ulValue</ParName>
+          <ParType>uint32_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Used to update the notification value of the subject task. See the description of the eAction parameter below. </ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>eAction</ParName>
+          <ParType>eNotifyAction</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>An enumerated type that can take one of the values documented in the table below in order to perform the associated action. </ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>pulPreviousNotifyValue</ParName>
+          <ParType>uint32_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Can be used to pass out the subject task's notification value before any bits are modified by the action of xTaskNotifyAndQuery().\n\npulPreviousNotifyValue is an optional parameter, and can be set to NULL if it is not required. If pulPreviousNotifyValue is not used then consider using xTaskNotify() in place of xTaskNotifyAndQuery(). </ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>pxHigherPriorityTaskWoken</ParName>
+          <ParType>BaseType_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>*pxHigherPriorityTaskWoken must be initialised to 0.\n\nxTaskNotifyFromISR() will set *pxHigherPriorityTaskWoken to pdTRUE if sending the notification caused a task to unblock, and the unblocked task has a priority higher than the currently running task.\n\nIf xTaskNotifyFromISR() sets this value to pdTRUE then a context switch should be requested before the interrupt is exited. See the example below.\n\npxHigherPriorityTaskWoken is an optional parameter and can be set to NULL. </ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>BaseType_t #M#_#C#(TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *pulPreviousNotifyValue, BaseType_t *pxHigherPriorityTaskWoken)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
         <Name>xTaskNotifyWait</Name>
         <Symbol>xTaskNotifyWait</Symbol>
         <TypeSpec>typeMethod</TypeSpec>
@@ -5913,6 +6178,129 @@ If the receiving RTOS task was already Blocked waiting for a notification when o
     </Method>
     <Method>
       <TMthdItem>
+        <Name>xTaskNotifyStateClear</Name>
+        <Symbol>xTaskNotifyStateClear</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint> [If you are using RTOS task notifications to implement binary or counting semaphore type behaviour then use the simpler xTaskNotifyGive() API function instead of xTaskNotify()]\n
+\n
+ If the notification state of the task referenced by the handle xTask is eNotified, then set the task's notification state to eNotWaitingNotification. The task's notification value is not altered.  Set xTask to NULL to clear the notification state of the calling task.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>BaseType_t</ReturnType>
+        <RetHint>pdPASS is returned in all cases other than when eAction is set to eSetValueWithoutOverwrite and the subject task's notification value cannot be updated because the subject task already had a notification pending. </RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>xTask</ParName>
+          <ParType>TaskHandle_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>The handle of the RTOS task. Use NULL for using the calling task.</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>BaseType_t #M#_#C#(TaskHandle_t xTask)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>vTaskSetThreadLocalStoragePointer</Name>
+        <Symbol>vTaskSetThreadLocalStoragePointer</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Only enabled if configNUM_THREAD_LOCAL_STORAGE_POINTERS is &gt;0.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>3</ParamCount>
+        <Parameter>
+          <ParName>xTaskToSet</ParName>
+          <ParType>TaskHandle_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Task handle</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>xIndex</ParName>
+          <ParType>BaseType_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Index of thread local storage item</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>pvValue</ParName>
+          <ParType>pVoid</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint/>
+          <ParUserDeclaration>void *pvValue</ParUserDeclaration>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(TaskHandle_t xTaskToSet, BaseType_t xIndex, void *pvValue)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>pvTaskGetThreadLocalStoragePointer</Name>
+        <Symbol>pvTaskGetThreadLocalStoragePointer</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Sets the thread local storage. Only enabled if configNUM_THREAD_LOCAL_STORAGE_POINTERS is &gt;0</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>pointer</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>2</ParamCount>
+        <Parameter>
+          <ParName>xTaskToQuery</ParName>
+          <ParType>TaskHandle_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Task handle from which to get the local thread storage.</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>xIndex</ParName>
+          <ParType>BaseType_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Index of thread storage</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void* #M#_#C#(TaskHandle_t xTaskToQuery, BaseType_t xIndex)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
         <Name>ParseCommand</Name>
         <Symbol>ParseCommand</Symbol>
         <TypeSpec>typeMethod</TypeSpec>
@@ -5930,12 +6318,12 @@ If the receiving RTOS task was already Blocked waiting for a notification when o
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>3</ParamCount>
         <Parameter>
           <ParName>cmd</ParName>
-          <ParType>8bit unsigned</ParType>
+          <ParType>uint8_t</ParType>
           <ParPassing>Address</ParPassing>
           <ParHint>Pointer to command string</ParHint>
           <ParUserDeclaration>const unsigned char *cmd</ParUserDeclaration>
@@ -5948,14 +6336,14 @@ If the receiving RTOS task was already Blocked waiting for a notification when o
         </Parameter>
         <Parameter>
           <ParName>io</ParName>
-          <ParType>8bit unsigned</ParType>
+          <ParType>uint8_t</ParType>
           <ParPassing>Address</ParPassing>
           <ParHint>Pointer to I/O structure</ParHint>
           <ParUserDeclaration>const %@Shell@'ModuleName'%.StdIOType *io</ParUserDeclaration>
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char *cmd, bool *handled, const %@Shell@'ModuleName'%.StdIOType *io)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char *cmd, bool *handled, const %@Shell@'ModuleName'%.StdIOType *io)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>

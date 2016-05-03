@@ -65,16 +65,18 @@
 
 /* MODULE %ModuleName. */
 
-%ifdef SharedModules
-/* Include shared modules, which are used for whole project */
-  %for var from IncludeSharedModules
-#include "%'var'.h"
-  %endfor
-%endif
 /* Include inherited beans */
 %ifdef InhrSymbolList
   %for var from InhrSymbolList
 #include "%@%var@ModuleName.h"
+  %endfor
+%endif
+
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%ifdef SharedModules
+/* Include shared modules, which are used for whole project */
+  %for var from IncludeSharedModules
+  #include "%'var'.h"
   %endfor
 %endif
 %-BW_CUSTOM_INCLUDE_START_H
@@ -86,8 +88,8 @@
 %-
 %-BW_METHOD_MACROS_START
 %-BW_METHOD_MACROS_END
-
-#include "%ProcessorModule.h"
+  #include "%ProcessorModule.h"
+#endif
 %include sw\CommonSupport.prg
 %-
 %if defined(OperatingSystemId) & OperatingSystemId = 'FreeRTOS'
@@ -128,6 +130,16 @@ extern "C" {
 #pragma MESSAGE DISABLE C4001 /* Condition always FALSE */
 %endif
 %-
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED != %@sdk@'ModuleName'%.SDK_VERSION_NONE
+  extern uint32_t SystemCoreClock; /* clock frequency variable defined system_<device>.h of the SDK */
+  #define %'ModuleName'%.INSTR_CLOCK_HZ       SystemCoreClock   %>%CTAB  /* core clock frequency in Hz */
+#else
+  %if (CPU_FAMILY = "Kinetis")
+  #define %'ModuleName'%.INSTR_CLOCK_HZ       CPU_CORE_CLK_HZ   %>%CTAB /* for Kinetis, use core clock as base for instruction execution */
+  %else
+  #define %'ModuleName'%.INSTR_CLOCK_HZ       CPU_BUS_CLK_HZ    %>%CTAB /* for none-Kinetis, use buse clock as base for instruction execution */
+  %endif
+#endif
 #define %'ModuleName'%.NofCyclesMs(ms, hz)  ((ms)*((hz)/1000))               %>%CTAB /* calculates the needed cycles based on bus clock frequency */
 %if (CPU_FAMILY = "ColdFireV1")
 %- ColdFire is too fast for a single instruction range: add plus 1 cycle to keep timing accurate enough
@@ -217,11 +229,13 @@ void %'ModuleName'%.%Waitms(uint16_t ms);
 %if defined(WaitUseMacroVersion)
 /* we are having a static clock configuration: implement as macro/inlined version */
 #define %'ModuleName'%.Waitus(us)  \
-       (  ((%'ModuleName'%.NofCyclesUs((us),CPU_BUS_CLK_HZ)==0)||(us)==0) ? \
+        /*lint -save -e(505,506,522) Constant value Boolean, Redundant left argument to comma. */\
+       (  ((%'ModuleName'%.NofCyclesUs((us),%'ModuleName'%.INSTR_CLOCK_HZ)==0)||(us)==0) ? \
           (void)0 : \
           ( ((us)/1000)==0 ? (void)0 : %'ModuleName'%.Waitms((uint16_t)((us)/1000))) \
-          , (%'ModuleName'%.NofCyclesUs(((us)%%1000), CPU_BUS_CLK_HZ)==0) ? (void)0 : \
-            %'ModuleName'%.WAIT_C(%'ModuleName'%.NofCyclesUs(((us)%%1000), CPU_BUS_CLK_HZ)) \
+          , (%'ModuleName'%.NofCyclesUs(((us)%%1000), %'ModuleName'%.INSTR_CLOCK_HZ)==0) ? (void)0 : \
+            %'ModuleName'%.WAIT_C(%'ModuleName'%.NofCyclesUs(((us)%%1000), %'ModuleName'%.INSTR_CLOCK_HZ)) \
+       /*lint -restore */\
        )
 %else
 void %'ModuleName'%.%Waitus(uint16_t us);
@@ -237,12 +251,14 @@ void %'ModuleName'%.%Waitus(uint16_t us);
 %if defined(WaitUseMacroVersion)
 /* we are having a static clock configuration: implement as macro/inlined version */
 #define %'ModuleName'%.Waitns(ns)  \
-       (  ((%'ModuleName'%.NofCyclesNs((ns), CPU_BUS_CLK_HZ)==0)||(ns)==0) ? \
+        /*lint -save -e(505,506,522) Constant value Boolean, Redundant left argument to comma. */\
+       (  ((%'ModuleName'%.NofCyclesNs((ns), %'ModuleName'%.INSTR_CLOCK_HZ)==0)||(ns)==0) ? \
           (void)0 : \
           %'ModuleName'%.Waitus((ns)/1000) \
-          , (%'ModuleName'%.NofCyclesNs((ns)%%1000, CPU_BUS_CLK_HZ)==0) ? \
+          , (%'ModuleName'%.NofCyclesNs((ns)%%1000, %'ModuleName'%.INSTR_CLOCK_HZ)==0) ? \
               (void)0 : \
-              %'ModuleName'%.WAIT_C(%'ModuleName'%.NofCyclesNs(((ns)%%1000), CPU_BUS_CLK_HZ)) \
+              %'ModuleName'%.WAIT_C(%'ModuleName'%.NofCyclesNs(((ns)%%1000), %'ModuleName'%.INSTR_CLOCK_HZ)) \
+       /*lint -restore */\
        )
 %else
 void %'ModuleName'%.%Waitns(uint16_t ns);
@@ -261,7 +277,7 @@ void %'ModuleName'%.%Waitns(uint16_t ns);
 %else
 #define %'ModuleName'%.%WaitOSms(ms) \
 %if defined(OperatingSystemId) & OperatingSystemId = 'FreeRTOS'
-  vTaskDelay(ms/portTICK_RATE_MS)
+  vTaskDelay(ms/portTICK_PERIOD_MS)
 %else
   %'ModuleName'%.%Waitms(ms) /* no RTOS used, so use normal wait */
 %endif
@@ -331,12 +347,13 @@ void %'ModuleName'%.%WaitLongCycles(uint32_t cycles);
 %ifdef Wait10Cycles
 %include Common\WaitWait10Cycles.Inc
 %if (CPU_FAMILY = "Kinetis") & %Compiler = "GNUC"
-__attribute__((naked)) void %'ModuleName'%.%Wait10Cycles(void)
+__attribute__((naked, no_instrument_function)) void %'ModuleName'%.%Wait10Cycles(void)
 %else
 void %'ModuleName'%.%Wait10Cycles(void)
 %endif
 {
   /* This function will wait 10 CPU cycles (including call overhead). */
+  /*lint -save -e522 function lacks side effect. */
 %if (CPU_FAMILY = "HCS08") | (CPU_FAMILY = "HC08")
   __asm {
       ; BSR to here  ;  [5]
@@ -402,6 +419,7 @@ void %'ModuleName'%.%Wait10Cycles(void)
   #warning "unsupported CPU family %CPUfamily"
   volatile byte i = 0; /* just something to wait, NOT the requested 10 cycles */
 %endif
+  /*lint -restore */
 }
 
 %endif %- Wait10Cycles
@@ -413,7 +431,7 @@ void %'ModuleName'%.%Wait10Cycles(void)
   /* Implemented in assembly file, as IAR does not support labels in HLI */
 %else
 %if (CPU_FAMILY = "Kinetis") & %Compiler = "GNUC"
-__attribute__((naked)) void %'ModuleName'%.%Wait100Cycles(void)
+__attribute__((naked, no_instrument_function)) void %'ModuleName'%.%Wait100Cycles(void)
 %elif (CPU_FAMILY = "Kinetis") & (%Compiler = "ARM_CC") %- Keil/ARM compiler
 __asm void %'ModuleName'%.%Wait100Cycles(void)
 %else
@@ -421,6 +439,7 @@ void %'ModuleName'%.%Wait100Cycles(void)
 %endif
 {
   /* This function will spend 100 CPU cycles (including call overhead). */
+  /*lint -save -e522 function lacks side effect. */
 %if (CPU_FAMILY = "HCS08") | (CPU_FAMILY = "HC08")
   __asm {
       ; BSR to here  ;  [5]
@@ -523,6 +542,7 @@ loop
   volatile byte i;
   for(i=0; i<50; i++); /* just something to wait, NOT the requested 100 cycles */
 %endif
+  /*lint -restore */
 }
 %endif  %-(%Compiler = "IARARM")
 
@@ -535,6 +555,7 @@ loop
 %include Common\WaitWaitCycles.Inc
 void %'ModuleName'%.%WaitCycles(uint16_t cycles)
 {
+  /*lint -save -e522 function lacks side effect. */
   while(cycles > 100) {
     %'ModuleName'%.%Wait100Cycles();
     cycles -= 100;
@@ -543,6 +564,7 @@ void %'ModuleName'%.%WaitCycles(uint16_t cycles)
     %'ModuleName'%.%Wait10Cycles();
     cycles -= 10;
   }
+  /*lint -restore */
 }
 
 %endif %- WaitCycles
@@ -554,11 +576,13 @@ void %'ModuleName'%.%WaitCycles(uint16_t cycles)
 %include Common\WaitWaitLongCycles.Inc
 void %'ModuleName'%.%WaitLongCycles(uint32_t cycles)
 {
+  /*lint -save -e522 function lacks side effect. */
   while(cycles>60000) {
     %'ModuleName'%.%WaitCycles(60000);
     cycles -= 60000;
   }
   %'ModuleName'%.%WaitCycles((uint16_t)cycles);
+  /*lint -restore */
 }
 
 %endif %- WaitLongCycles
@@ -573,6 +597,7 @@ void %'ModuleName'%.%WaitLongCycles(uint32_t cycles)
 %endif
 void %'ModuleName'%.%Waitms(uint16_t ms)
 {
+  /*lint -save -e522 function lacks side effect. */
 %if (CPU_FAMILY = "Kinetis") | (CPU_FAMILY = "HCS08") | (CPU_FAMILY = "HC08") | (CPU_FAMILY = "RS08")  | (CPU_FAMILY = "HCS12X") | (CPU_FAMILY = "HCS12")
 %if (CPU_FAMILY = "Kinetis")
   uint32_t msCycles; /* cycles for 1 ms */
@@ -583,7 +608,7 @@ void %'ModuleName'%.%Waitms(uint16_t ms)
 %if defined(LowClock_kHz) | defined(SlowClock_kHz)
   /* dynamic clock/speed configuration */
   if (CpuMode == HIGH_SPEED) {
-    msCycles = %'ModuleName'%.NofCyclesMs(1, CPU_BUS_CLK_HZ_HIGH);
+    msCycles = %'ModuleName'%.NofCyclesMs(1, %'ModuleName'%.INSTR_CLOCK_HZ);
  %if defined(LowClock_kHz)
   %if defined(SlowClock_kHz)
   } else if (CpuMode == LOW_SPEED) {
@@ -599,11 +624,7 @@ void %'ModuleName'%.%Waitms(uint16_t ms)
   }
 %else
   /* static clock/speed configuration */
-%if (CPU_FAMILY = "Kinetis")
-  msCycles = %'ModuleName'%.NofCyclesMs(1, CPU_CORE_CLK_HZ);
-%else
-  msCycles = %'ModuleName'%.NofCyclesMs(1, CPU_BUS_CLK_HZ);
-%endif
+  msCycles = %'ModuleName'%.NofCyclesMs(1, %'ModuleName'%.INSTR_CLOCK_HZ);
 %endif
   while(ms>0) {
 %if (CPU_FAMILY = "Kinetis")
@@ -632,6 +653,7 @@ void %'ModuleName'%.%Waitms(uint16_t ms)
   %endif
   }
 %endif
+  /*lint -restore */
 }
 %ifdef COMPILER_HIX
 #pragma MESSAGE DEFAULT C5905 /* multiplication with one */
@@ -654,7 +676,7 @@ void %'ModuleName'%.%Waitus(uint16_t us)
 %if defined(LowClock_kHz) | defined(SlowClock_kHz)
   /* dynamic clock/speed configuration */
   if (CpuMode == HIGH_SPEED) {
-    %'ModuleName'%.WaitCycles((uint16_t)%'ModuleName'%.NofCyclesUs(us, CPU_BUS_CLK_HZ_HIGH));
+    %'ModuleName'%.WaitCycles((uint16_t)%'ModuleName'%.NofCyclesUs(us, %'ModuleName'%.INSTR_CLOCK_HZ));
  %if defined(LowClock_kHz)
   %if defined(SlowClock_kHz)
   } else if (CpuMode == LOW_SPEED) {
@@ -670,7 +692,7 @@ void %'ModuleName'%.%Waitus(uint16_t us)
   }
 %else
   /* static clock/speed configuration */
-  %'ModuleName'%.WaitCycles((uint16_t)%'ModuleName'%.NofCyclesUs(us, CPU_BUS_CLK_HZ));
+  %'ModuleName'%.WaitCycles((uint16_t)%'ModuleName'%.NofCyclesUs(us, %'ModuleName'%.INSTR_CLOCK_HZ));
 %endif
 }
 %ifdef COMPILER_HIX
@@ -710,7 +732,7 @@ void %'ModuleName'%.%Waitns(uint16_t ns)
  %endif
   }
 %else
-  %'ModuleName'%.WaitCycles((uint16_t)%'ModuleName'%.NofCyclesNs(ns, CPU_BUS_CLK_HZ));
+  %'ModuleName'%.WaitCycles((uint16_t)%'ModuleName'%.NofCyclesNs(ns, %'ModuleName'%.INSTR_CLOCK_HZ));
 %endif
 }
 %ifdef COMPILER_HIX

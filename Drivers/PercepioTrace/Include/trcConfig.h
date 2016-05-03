@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Tracealyzer v2.7.0 Recorder Library
+ * Tracealyzer v3.0.2 Recorder Library
  * Percepio AB, www.percepio.com
  *
  * trcConfig.h
@@ -52,36 +52,32 @@
  * Available ports are:
  *
  * Port Name							Code	 Official	OS supported
- * PORT_APPLICATION_DEFINED				 -2		-			-
- * PORT_NOT_SET							       -1		-			-
- * PORT_HWIndependent					      0		Yes			Any
- * PORT_Win32							          1		Yes			FreeRTOS on Win32
- * PORT_Atmel_AT91SAM7					    2		No			Any
- * PORT_Atmel_UC3A0						      3		No			Any
- * PORT_ARM_CortexM						      4		Yes			Any
- * PORT_Renesas_RX600					      5		Yes			Any
- * PORT_Microchip_dsPIC_AND_PIC24		6		Yes			Any				
- * PORT_TEXAS_INSTRUMENTS_TMS570		7		No			Any				
- * PORT_TEXAS_INSTRUMENTS_MSP430		8		No			Any				
- * PORT_MICROCHIP_PIC32MX				    9		Yes			Any
- * PORT_XILINX_PPC405					     10		No			FreeRTOS
- * PORT_XILINX_PPC440					     11		No			FreeRTOS
- * PORT_XILINX_MICROBLAZE				   12		No			Any
- * PORT_NXP_LPC210X						     13		No			Any
- * PORT_MICROCHIP_PIC32MZ				   14		Yes			Any
- * PORT_ARM_CORTEX_A9					     15		No			Any
+ * PORT_APPLICATION_DEFINED	            -2		-			-
+ * PORT_NOT_SET                         -1		-			-
+ * PORT_HWIndependent                    0		Yes			Any
+ * PORT_Win32                            1		Yes			FreeRTOS on Win32
+ * PORT_Atmel_AT91SAM7                   2		No			Any
+ * PORT_Atmel_UC3A0                      3		No			Any
+ * PORT_ARM_CortexM                      4		Yes			Any
+ * PORT_Renesas_RX600                    5		Yes			Any
+ * PORT_Microchip_dsPIC_AND_PIC24        6		Yes			Any
+ * PORT_TEXAS_INSTRUMENTS_TMS570         7		No			Any
+ * PORT_TEXAS_INSTRUMENTS_MSP430         8		No			Any
+ * PORT_MICROCHIP_PIC32MX                9		Yes			Any
+ * PORT_XILINX_PPC405                    10		No			FreeRTOS
+ * PORT_XILINX_PPC440                    11		No			FreeRTOS
+ * PORT_XILINX_MICROBLAZE                12		No			Any
+ * PORT_NXP_LPC210X                      13		No			Any
+ * PORT_MICROCHIP_PIC32MZ                14		Yes			Any
+ * PORT_ARM_CORTEX_A9                    15		No			Any
  *****************************************************************************/
 
 // Set the port setting here!
-#if 1 /* << EST */
 #include "FreeRTOSConfig.h"
 #if configCPU_FAMILY_IS_ARM(configCPU_FAMILY)
-#define SELECTED_PORT PORT_ARM_CortexM
+  #define SELECTED_PORT PORT_ARM_CortexM
 #else
-#define SELECTED_PORT PORT_FREESCALE_PROCESSOR_EXPERT
-#endif
-#else
-#define SELECTED_PORT PORT_NOT_SET
+  #define SELECTED_PORT PORT_FREESCALE_PROCESSOR_EXPERT
 #endif
 
 #if (SELECTED_PORT == PORT_ARM_CortexM)
@@ -124,11 +120,7 @@
  * recording events following a specific state, e.g., the startup sequence.
  *****************************************************************************/
 
-#if 1 /* << EST */
-#define TRACE_RECORDER_STORE_MODE %RecorderStoreMode
-#else
-#define TRACE_RECORDER_STORE_MODE TRACE_STORE_MODE_STOP_WHEN_FULL
-#endif
+#define TRACE_RECORDER_STORE_MODE %RecorderStoreMode /* TRACE_STORE_MODE_RING_BUFFER or TRACE_STORE_MODE_STOP_WHEN_FULL */
 
 /*******************************************************************************
  * TRACE_SCHEDULING_ONLY
@@ -144,15 +136,11 @@
  * Default value is 0 (store all enabled events).
  *
  ******************************************************************************/
-#if 1 /* << EST */
 %if defined(TraceSchedulingOnly) & %TraceSchedulingOnly='yes'
 #define TRACE_SCHEDULING_ONLY 1
 %else
 #define TRACE_SCHEDULING_ONLY 0
 %endif
-#else
-#define TRACE_SCHEDULING_ONLY 0
-#endif
 
 /*******************************************************************************
  * EVENT_BUFFER_SIZE
@@ -167,11 +155,7 @@
  * Default value is 1000, which means that 4000 bytes is allocated for the
  * event buffer.
  ******************************************************************************/
-#if 1 /* << EST */
 #define EVENT_BUFFER_SIZE %EventBufferSize
-#else
-#define EVENT_BUFFER_SIZE 1000
-#endif
 
 /*******************************************************************************
  * NTask, NISR, NQueue, NSemaphore, NMutex
@@ -194,7 +178,6 @@
  * check the actual usage by selecting View menu -> Trace Details -> 
  * Resource Usage -> Object Table. 
  ******************************************************************************/
-#if 1 /* << EST */
 #define NTask             %NTask
 #define NISR              %NISR
 #define NQueue            %NQueue
@@ -202,15 +185,6 @@
 #define NMutex            %NMutex
 #define NTimer            %NTimer
 #define NEventGroup       %NEventGroup
-#else
-#define NTask             15
-#define NISR              5
-#define NQueue            10
-#define NSemaphore        10
-#define NMutex            10
-#define NTimer            2
-#define NEventGroup       2
-#endif
 
 /******************************************************************************
  * INCLUDE_MEMMANG_EVENTS
@@ -222,15 +196,11 @@
  *
  * Default value is 1.
  *****************************************************************************/
-#if 1 /* << EST */
 %if defined(IncludeMemManageEvents) & %IncludeMemManageEvents='yes'
 #define INCLUDE_MEMMANG_EVENTS 1
 %else
 #define INCLUDE_MEMMANG_EVENTS 0
 %endif
-#else
-#define INCLUDE_MEMMANG_EVENTS 1
-#endif
 
 /******************************************************************************
  * INCLUDE_USER_EVENTS

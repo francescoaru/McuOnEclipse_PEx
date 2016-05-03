@@ -4,7 +4,7 @@
     <Name>Utility</Name>
     <Description>Utility Module</Description>
     <Author>Erich Styger</Author>
-    <Version>01.109</Version>
+    <Version>01.119</Version>
     <Icon>Utility</Icon>
     <TypesFiles>PE,Utility\Utility</TypesFiles>
     <FileVersion>6</FileVersion>
@@ -19,7 +19,7 @@
     <BW_NeedUst>7</BW_NeedUst>
     <BW_NeedCns>0</BW_NeedCns>
     <BeanStatus>PROPOSAL</BeanStatus>
-    <Copyright>License   :  Open Source (LGPL)\nCopyright : (c) Copyright Erich Styger, 2014, all rights reserved.\nxatoi(): Copyright (C) 2010, ChaN, all right reserved. (see copyright notice and license at the function implementation).\n\nThis an open source software implementing utility functions using Processor Expert.\nThis is a free software and is opened for education,  research and commercial developments under license policy of following terms:\n* This is a free software and there is NO WARRANTY.\n* No restriction on use. You can use, modify and redistribute it for\n  personal, non-profit or commercial product UNDER YOUR RESPONSIBILITY.\n* Redistributions of source code must retain the above copyright notice.</Copyright>
+    <Copyright>License   :  Open Source (LGPL)\nCopyright : (c) Copyright Erich Styger, 2014-2016, all rights reserved.\nxatoi(): Copyright (C) 2010, ChaN, all right reserved. (see copyright notice and license at the function implementation).\n\nThis an open source software implementing utility functions using Processor Expert.\nThis is a free software and is opened for education,  research and commercial developments under license policy of following terms:\n* This is a free software and there is NO WARRANTY.\n* No restriction on use. You can use, modify and redistribute it for\n  personal, non-profit or commercial product UNDER YOUR RESPONSIBILITY.\n* Redistributions of source code must retain the above copyright notice.</Copyright>
     <Category>SW-User Components</Category>
     <DemoDriver>no</DemoDriver>
     <BeanLevel>High</BeanLevel>
@@ -35,6 +35,20 @@
         <EditLine>true</EditLine>
         <DefaultValue/>
       </TCompNameItem>
+    </Property>
+    <Property>
+      <TInhrLinkItem>
+        <Name>SDK</Name>
+        <Symbol>sdk</Symbol>
+        <TypeSpec>Utility\sdk</TypeSpec>
+        <Hint>Interface to SDK</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <DefaultValue/>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <SortStyle/>
+      </TInhrLinkItem>
     </Property>
   </PropertyList>
   <MethodList>
@@ -131,6 +145,66 @@
         <Scope>PRIVATE</Scope>
         <Declarations>
           <ANSIC>void #M#_#C#(uint8_t *dst, size_t dstSize, const unsigned char *src)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>strcatPad</Name>
+        <Symbol>strcatPad</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Same as normal strcat, but safe as it does not write beyond the buffer. The buffer will be filled with a pad character for a given length.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>none</RetHint>
+        <ParamCount>5</ParamCount>
+        <Parameter>
+          <ParName>dst</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to destination string</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>dstSize</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Size of the destination buffer (in bytes).</ParHint>
+          <ParUserDeclaration>size_t dstSize</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>src</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to source string.</ParHint>
+          <ParUserDeclaration>const unsigned char *src</ParUserDeclaration>
+        </Parameter>
+        <Parameter>
+          <ParName>padChar</ParName>
+          <ParType>char</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Character to be used for padding</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>srcPadSize</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>To which size the src string has to be padded.</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(uint8_t *dst, size_t dstSize, const unsigned char *src, char padChar, uint8_t srcPadSize)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1551,7 +1625,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Returns the weekday, 0 for Sunday, 1 for Monday, 2 for Tuesday, etc.</RetHint>
         <ParamCount>3</ParamCount>
         <Parameter>
@@ -1574,7 +1648,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(uint16_t year, uint8_t month, uint8_t day)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(uint16_t year, uint8_t month, uint8_t day)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1597,7 +1671,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>6</ParamCount>
         <Parameter>
@@ -1643,7 +1717,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char *filename, uint8_t *destname, size_t maxlen, size_t *lenRead, size_t *lenWritten, const char *terminators)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char *filename, uint8_t *destname, size_t maxlen, size_t *lenRead, size_t *lenWritten, const char *terminators)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1666,7 +1740,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -1685,7 +1759,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, int32_t *res)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, int32_t *res)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1708,7 +1782,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>4</ParamCount>
         <Parameter>
@@ -1738,7 +1812,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint8_t *day, uint8_t *month, uint16_t *year)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint8_t *day, uint8_t *month, uint16_t *year)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1761,7 +1835,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>5</ParamCount>
         <Parameter>
@@ -1797,7 +1871,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint8_t *hour, uint8_t *minute, uint8_t *second, uint8_t *hSecond)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint8_t *hour, uint8_t *minute, uint8_t *second, uint8_t *hSecond)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1820,7 +1894,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -1838,7 +1912,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint8_t *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint8_t *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1861,7 +1935,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -1879,7 +1953,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, signed char *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, signed char *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1902,7 +1976,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -1920,7 +1994,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint16_t *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint16_t *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1943,7 +2017,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -1961,7 +2035,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, int16_t *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, int16_t *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -1984,7 +2058,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2003,7 +2077,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint32_t *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint32_t *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -2124,7 +2198,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2142,7 +2216,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint8_t *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint8_t *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -2165,7 +2239,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2183,7 +2257,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint8_t *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint8_t *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -2206,7 +2280,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2224,7 +2298,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(const unsigned char **str, uint16_t *val)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const unsigned char **str, uint16_t *val)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -2396,7 +2470,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>16bit signed</ReturnType>
+        <ReturnType>int16_t</ReturnType>
         <RetHint>Returns zero if the two strings are the same</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2438,7 +2512,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>16bit signed</ReturnType>
+        <ReturnType>int16_t</ReturnType>
         <RetHint>Returns zero if the two strings are the same</RetHint>
         <ParamCount>3</ParamCount>
         <Parameter>
@@ -2487,7 +2561,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>16bit signed</ReturnType>
+        <ReturnType>int16_t</ReturnType>
         <RetHint>-1 if not found, otherwise the character index.</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2527,7 +2601,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>returns 0 if tail matches, -1 otherwise</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2535,16 +2609,18 @@
           <ParType>uint8_t</ParType>
           <ParPassing>Address</ParPassing>
           <ParHint>Pointer to string. This string is compared if it contains the tail.</ParHint>
+          <ParUserDeclaration>const uint8_t *str</ParUserDeclaration>
         </Parameter>
         <Parameter>
           <ParName>tail</ParName>
           <ParType>uint8_t</ParType>
           <ParPassing>Address</ParPassing>
           <ParHint>Pointer to tail string.</ParHint>
+          <ParUserDeclaration>const uint8_t *tail</ParUserDeclaration>
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(uint8_t *str, uint8_t *tail)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(const uint8_t *str, const uint8_t *tail)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -2567,7 +2643,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>16bit unsigned</ReturnType>
+        <ReturnType>uint16_t</ReturnType>
         <RetHint>size of strinig</RetHint>
         <ParamCount>1</ParamCount>
         <Parameter>
@@ -2579,7 +2655,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>word #M#_#C#(const char *)</ANSIC>
+          <ANSIC>uint16_t #M#_#C#(const char *)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -2602,7 +2678,7 @@
         <PublicMethod>true</PublicMethod>
         <IsAssembler>false</IsAssembler>
         <InDefinition>true</InDefinition>
-        <ReturnType>8bit unsigned</ReturnType>
+        <ReturnType>uint8_t</ReturnType>
         <RetHint>Error code, ERR_OK if no error, otherwise ERR_FAIL if tail is not found</RetHint>
         <ParamCount>2</ParamCount>
         <Parameter>
@@ -2619,7 +2695,7 @@
         </Parameter>
         <Scope>PRIVATE</Scope>
         <Declarations>
-          <ANSIC>byte #M#_#C#(uint8_t *str, uint8_t *tail)</ANSIC>
+          <ANSIC>uint8_t #M#_#C#(uint8_t *str, uint8_t *tail)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>

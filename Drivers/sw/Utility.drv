@@ -64,33 +64,31 @@
 #define __%'ModuleName'_H
 
 /* MODULE %ModuleName. */
-
-%ifdef SharedModules
-/* Include shared modules, which are used for whole project */
-  %for var from IncludeSharedModules
-#include "%'var'.h"
-  %endfor
-%endif
 /* Include inherited beans */
 %ifdef InhrSymbolList
   %for var from InhrSymbolList
 #include "%@%var@ModuleName.h"
   %endfor
 %endif
+
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%ifdef SharedModules
+/* Include shared modules, which are used for whole project */
+  %for var from IncludeSharedModules
+  #include "%'var'.h"
+  %endfor
+%endif
 %-BW_CUSTOM_INCLUDE_START_H
 %- Write your own includes here ...
 %-   Example:
 %-     #include "header_name.h"
-%if (%CPUDB_prph_has_feature(CPU,SDK_SUPPORT) = 'yes') %- TRUE/FALSE not defined for SDK projects
-#include "PE_KSDK_Types.h" /* if this file is missing: have you added the Kinetis SDK component? */
-%endif
 %-
 %-BW_CUSTOM_INCLUDE_END_H
 %-
 %-BW_METHOD_MACROS_START
 %-BW_METHOD_MACROS_END
-
-#include "%ProcessorModule.h"
+  #include "%ProcessorModule.h"
+#endif
 #include <string.h>
 #include <stddef.h> /* for size_t */
 %include sw\CommonSupport.prg
@@ -613,7 +611,7 @@ uint8_t %'ModuleName'%.%ScanHex8uNumber(const unsigned char **str, uint8_t *val)
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN strtailcmp
 %ifdef strtailcmp
-uint8_t %'ModuleName'%.%strtailcmp(uint8_t *str, uint8_t *tail);
+uint8_t %'ModuleName'%.%strtailcmp(const uint8_t *str, const uint8_t *tail);
 %define! Parstr
 %define! Partail
 %define! RetVal
@@ -737,6 +735,19 @@ uint8_t %'ModuleName'%.%ScanDecimal32sDotNumber(const unsigned char **str, int32
 
 %endif %- ScanDecimal32sDotNumber
 %-BW_METHOD_END ScanDecimal32sDotNumber
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN strcatPad
+%ifdef strcatPad
+void %'ModuleName'%.%strcatPad(uint8_t *dst, size_t dstSize, const unsigned char *src, char padChar, uint8_t srcPadSize);
+%define! Pardst
+%define! PardstSize
+%define! Parsrc
+%define! ParpadChar
+%define! ParsrcPadSize
+%include Common\UtilitystrcatPad.Inc
+
+%endif %- strcatPad
+%-BW_METHOD_END strcatPad
 %-BW_DEFINITION_END
 /* END %ModuleName. */
 
@@ -991,7 +1002,6 @@ void %'ModuleName'%.%Num16sToStr(uint8_t *dst, size_t dstSize, int16_t val)
   }
   if (sign && dstSize > 0){
     ptr[i++] = '-';
-    dstSize--;
   }
   for(j=0; j<(i/2); j++) { /* swap buffer */
     tmp = ptr[j];
@@ -1580,7 +1590,6 @@ void %'ModuleName'%.%Num32sToStr(uint8_t *dst, size_t dstSize, int32_t val)
   }
   if (sign && dstSize > 0){
     ptr[i++] = '-';
-    dstSize--;
   }
   for(j=0; j<(i/2); j++) { /* swap buffer */
     tmp = ptr[j];
@@ -1693,7 +1702,7 @@ uint8_t %'ModuleName'%.%ReadEscapedName(const unsigned char *filename, uint8_t *
   bool res = ERR_OK;
   #define IS_SPACE(ch) ((ch)==' '||(ch)=='\t'||(ch)=='\n'||(ch)=='\v'||(ch)=='\f'||(ch)=='\r')
 
-  if (filename==NULL || (destname!=NULL && maxlen<=0)) {
+  if (filename==NULL || (destname!=NULL && maxlen==0)) {
     return ERR_FAILED;
   }
   if (filename[0] == '"') { /* translated mode */
@@ -1936,7 +1945,6 @@ uint8_t %'ModuleName'%.%ScanTime(const unsigned char **str, uint8_t *hour, uint8
             if (SCAN_IS_DIGIT(*p)) {
               if (SCAN_IS_DIGIT(*(p+1))) { /* ,hh format */
                 *hSecond = (uint8_t)((*p-'0')*10 + *(p+1)-'0');
-                p++; p++;
                 return ERR_OK;
               } else { /* ,z format */
                 *hSecond = (uint8_t)((*p-'0')*10);
@@ -2448,7 +2456,7 @@ uint8_t %'ModuleName'%.%ScanHex8uNumberNoPrefix(const unsigned char **str, uint8
 %define! Partail
 %define! RetVal
 %include Common\Utilitystrtailcmp.Inc
-uint8_t %'ModuleName'%.%strtailcmp(uint8_t *str, uint8_t *tail)
+uint8_t %'ModuleName'%.%strtailcmp(const uint8_t *str, const uint8_t *tail)
 {
   int i, j;
 
@@ -2503,12 +2511,15 @@ uint8_t %'ModuleName'%.%strCutTail(uint8_t *str, uint8_t *tail)
 %include Common\UtilitystrcatNum32sDotValue100.Inc
 void %'ModuleName'%.%strcatNum32sDotValue100(uint8_t *dst, size_t dstSize, int32_t num)
 {
+  if (num<0 && (num/100)==0) { /* e.g. -53 ==> write sign, as strcatNum32() below will not know that it is negative */
+    %'ModuleName'%.%chcat(dst, dstSize, '-');
+  }
   %'ModuleName'%.%strcatNum32s(dst, dstSize, num/100);
   %'ModuleName'%.%chcat(dst, dstSize, '.');
   if (num<0) {
     num = -num;
   }
-  %'ModuleName'%.%strcatNum16uFormatted(dst, dstSize, (uint16_t)(num%%100), '0', 2);
+  %'ModuleName'%.%strcatNum16uFormatted(dst, dstSize, (uint16_t)((unsigned)num%%100U), '0', 2);
 }
 
 %endif %- strcatNum32sDotValue100
@@ -2617,6 +2628,45 @@ uint8_t %'ModuleName'%.%ScanDoubleQuotedString(const uint8_t **cmd, uint8_t *buf
 
 %endif %- ScanDoubleQuotedString
 %-BW_METHOD_END ScanDoubleQuotedString
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN strcatPad
+%ifdef strcatPad
+%define! Pardst
+%define! PardstSize
+%define! Parsrc
+%define! ParpadChar
+%define! ParsrcPadSize
+%include Common\UtilitystrcatPad.Inc
+void %'ModuleName'%.%strcatPad(uint8_t *dst, size_t dstSize, const unsigned char *src, char padChar, uint8_t srcPadSize)
+{
+  uint8_t *p;
+  size_t nof = 0;
+
+  if (dstSize<2) {
+    return; /* hmm, really to small for anything than the zero byte? */
+  }
+  p = dst;
+  while(*p != '\0') { /* find end of string */
+    p++;
+    nof++;
+  }
+  %'ModuleName'%.%strcat(dst+nof, dstSize-nof, src); /* add string */
+  dstSize -= nof;
+  while(*p != '\0' && srcPadSize>0 && dstSize>1) {
+    p++;
+    srcPadSize--;
+    dstSize--;
+  }
+  while(srcPadSize>0 && dstSize>1) {
+    *p++ = padChar; /* add padding char */
+    srcPadSize--;
+    dstSize--;
+  }
+  *p = '\0'; /* terminate string */
+}
+
+%endif %- strcatPad
+%-BW_METHOD_END strcatPad
 %-BW_IMPLEMENT_END
 /* END %ModuleName. */
 

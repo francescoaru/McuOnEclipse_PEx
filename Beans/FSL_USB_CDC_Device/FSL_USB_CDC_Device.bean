@@ -4,7 +4,7 @@
     <Name>FSL_USB_CDC_Device</Name>
     <Description>Freescale USB Stack (CDC)</Description>
     <Author>Erich Styger</Author>
-    <Version>01.045</Version>
+    <Version>01.081</Version>
     <Icon>FSL_USB_CDC_Device</Icon>
     <TypesFiles>PE,FSL_USB_CDC_Device\FSL_USB_CDC_Device</TypesFiles>
     <FileVersion>6</FileVersion>
@@ -174,10 +174,10 @@
               <Hint>This name shows up on the USB bus before drivers are installed. This string is used in usb_descriptor.c.</Hint>
               <ItemLevel>BASIC</ItemLevel>
               <EditLine>true</EditLine>
-              <DefaultValue>FSL CDC DEVICE  </DefaultValue>
+              <DefaultValue>FSL CDC DEVICE</DefaultValue>
               <StrDefine>nothing</StrDefine>
               <MinLength>-1</MinLength>
-              <MaxLength>16</MaxLength>
+              <MaxLength>28</MaxLength>
             </TStrgItem>
           </GrupItem>
           <GrupItem>
@@ -187,7 +187,20 @@
               <Hint>This name shows up on the USB bus before drivers are installed. This string is used in usb_descriptor.c.</Hint>
               <ItemLevel>BASIC</ItemLevel>
               <EditLine>true</EditLine>
-              <DefaultValue>FREESCALE INC.              </DefaultValue>
+              <DefaultValue>FREESCALE INC.</DefaultValue>
+              <StrDefine>nothing</StrDefine>
+              <MinLength>-1</MinLength>
+              <MaxLength>28</MaxLength>
+            </TStrgItem>
+          </GrupItem>
+          <GrupItem>
+            <TStrgItem>
+              <Name>Serial Number</Name>
+              <Symbol>CdcSerialNumberString</Symbol>
+              <Hint>This serial number/string can be used to identify devices. This string is used in usb_descriptor.c.</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>000123ABC</DefaultValue>
               <StrDefine>nothing</StrDefine>
               <MinLength>-1</MinLength>
               <MaxLength>28</MaxLength>
@@ -195,6 +208,71 @@
           </GrupItem>
         </Children>
       </TBoolGrupItem>
+    </Property>
+    <Property>
+      <TGrupItem>
+        <Name>Configuration</Name>
+        <Symbol>Configuration</Symbol>
+        <Hint>Settings which are used to configure USB_Config.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <BoldName>true</BoldName>
+        <EditLine>false</EditLine>
+        <Description/>
+        <Expanded>Yes</Expanded>
+        <Children>
+          <GrupItem>
+            <TIntgItem>
+              <Name>USB_EP0_SIZE (in)</Name>
+              <Symbol>USB_EP0_SIZE</Symbol>
+              <Hint>Configures USB_EP0_SIZE (default 32) in USB_Config.h</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>32</DefaultValue>
+              <MinValue>0</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>USB_EP1_SIZE (out)</Name>
+              <Symbol>USB_EP1_SIZE</Symbol>
+              <Hint>Configures USB_EP1_SIZE (default 32) in USB_Config.h</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>32</DefaultValue>
+              <MinValue>0</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>USB_EP2_SIZE (notify)</Name>
+              <Symbol>USB_EP2_SIZE</Symbol>
+              <Hint>Configures USB_EP2_SIZE (default 32) in USB_Config.h</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>32</DefaultValue>
+              <MinValue>0</MinValue>
+              <MaxValue>-1</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+        </Children>
+      </TGrupItem>
     </Property>
     <Property>
       <TInhrItem>
@@ -233,42 +311,73 @@
       </TInhrItem>
     </Property>
     <Property>
-      <TBoolGrupItem>
-        <Name>Use Timeout</Name>
-        <Symbol>TimeoutEnabled</Symbol>
-        <TypeSpec>typeEnaDis</TypeSpec>
-        <Hint>If enabled, the application task implements a timeout so it does not block.</Hint>
+      <TGrupItem>
+        <Name>SendDataBlock</Name>
+        <Symbol>SendBlockConfig</Symbol>
+        <Hint>SendDataBlock will wait as long as a transaction is going on. With this setting, the waiting loop can be configured.</Hint>
         <ItemLevel>BASIC</ItemLevel>
         <BoldName>true</BoldName>
         <EditLine>false</EditLine>
-        <Description>Disabled</Description>
-        <Expanded>No</Expanded>
-        <DefaultValue>false</DefaultValue>
-        <DefineSymbol>YES_NO</DefineSymbol>
-        <IfDisabled>setNOTHING</IfDisabled>
+        <Description/>
+        <Expanded>Yes</Expanded>
         <Children>
           <GrupItem>
-            <TInhrLinkItem>
-              <Name>Timeout</Name>
-              <Symbol>Timeout</Symbol>
-              <TypeSpec>FSL_USB_CDC_Device\Timeout</TypeSpec>
-              <Hint>Interface to timeout module. See the timeout documentation how to use it.</Hint>
+            <TBoolGrupItem>
+              <Name>Use Timeout</Name>
+              <Symbol>TimeoutEnabled</Symbol>
+              <TypeSpec>typeEnaDis</TypeSpec>
+              <Hint>If enabled, the SendDataBlock() implements a timeout so it does not block.</Hint>
               <ItemLevel>BASIC</ItemLevel>
+              <BoldName>true</BoldName>
               <EditLine>false</EditLine>
-              <DefaultValue/>
-              <CanDelete>false</CanDelete>
-              <IconPopup>false</IconPopup>
-              <SortStyle/>
-            </TInhrLinkItem>
+              <Description>Enabled</Description>
+              <Expanded>Yes</Expanded>
+              <DefaultValue>true</DefaultValue>
+              <DefineSymbol>YES_NO</DefineSymbol>
+              <IfDisabled>setNOTHING</IfDisabled>
+              <Children>
+                <GrupItem>
+                  <TInhrLinkItem>
+                    <Name>Timeout</Name>
+                    <Symbol>Timeout</Symbol>
+                    <TypeSpec>FSL_USB_CDC_Device\Timeout</TypeSpec>
+                    <Hint>Interface to timeout module. See the timeout documentation how to use it.</Hint>
+                    <ItemLevel>BASIC</ItemLevel>
+                    <EditLine>false</EditLine>
+                    <DefaultValue/>
+                    <CanDelete>false</CanDelete>
+                    <IconPopup>false</IconPopup>
+                    <SortStyle/>
+                  </TInhrLinkItem>
+                </GrupItem>
+                <GrupItem>
+                  <TIntgItem>
+                    <Name>App Task Timeout (ms)</Name>
+                    <Symbol>AppTaskTimeout</Symbol>
+                    <Hint>The App_Task() is sending data to the CDC. However, if there is no terminal open on the host, then the App_Task() function could be stalled.  A timeout can be specified here. Using a zero value disables the timeout.</Hint>
+                    <ItemLevel>BASIC</ItemLevel>
+                    <EditLine>true</EditLine>
+                    <DefaultValue>20</DefaultValue>
+                    <MinValue>0</MinValue>
+                    <MaxValue>-1</MaxValue>
+                    <Bases>DEC</Bases>
+                    <DefaultBase>DEC</DefaultBase>
+                    <ExtraHintDisabled>false</ExtraHintDisabled>
+                    <ChangeValueIntoRange>false</ChangeValueIntoRange>
+                    <RuntimeProperty>false</RuntimeProperty>
+                  </TIntgItem>
+                </GrupItem>
+              </Children>
+            </TBoolGrupItem>
           </GrupItem>
           <GrupItem>
             <TIntgItem>
-              <Name>App Task Timeout (ms)</Name>
-              <Symbol>AppTaskTimeout</Symbol>
-              <Hint>The App_Task() is sending data to the CDC. However, if there is no terminal open on the host, then the App_Task() function could be stalled.  A timeout can be specified here. Using a zero value disables the timeout.</Hint>
+              <Name>Waiting time (ms)</Name>
+              <Symbol>SendDataBlockWaitms</Symbol>
+              <Hint>Time to wait wait with WaitOSms() and polling if still a transaction is going on. Use a value of zero to diasble waiting.</Hint>
               <ItemLevel>BASIC</ItemLevel>
               <EditLine>true</EditLine>
-              <DefaultValue>0</DefaultValue>
+              <DefaultValue>10</DefaultValue>
               <MinValue>0</MinValue>
               <MaxValue>-1</MaxValue>
               <Bases>DEC</Bases>
@@ -278,8 +387,89 @@
               <RuntimeProperty>false</RuntimeProperty>
             </TIntgItem>
           </GrupItem>
+          <GrupItem>
+            <TInhrLinkItem>
+              <Name>Wait</Name>
+              <Symbol>Wait</Symbol>
+              <TypeSpec>FSL_USB_CDC_Device\Wait</TypeSpec>
+              <Hint>Interface to waiting routines</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <DefaultValue/>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <SortStyle/>
+            </TInhrLinkItem>
+          </GrupItem>
         </Children>
-      </TBoolGrupItem>
+      </TGrupItem>
+    </Property>
+    <Property>
+      <TGrupItem>
+        <Name>Power Options</Name>
+        <Symbol>PowerOptionsGroup</Symbol>
+        <Hint>These options configure power options in the USB descriptor (g_config_descriptor[] inside usb_descriptor.c). S08/CFv1 are both self powered (its compulsory to set bus powered)</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <BoldName>true</BoldName>
+        <EditLine>false</EditLine>
+        <Description/>
+        <Expanded>Always</Expanded>
+        <Children>
+          <GrupItem>
+            <TBoolItem>
+              <Name>Bus Powered</Name>
+              <Symbol>ConfigBusPowered</Symbol>
+              <TypeSpec>typeYesNo</TypeSpec>
+              <Hint>This setting configures if BUS_POWERED is present in g_config_descriptor[] inside usb_descriptor.c (default: yes)</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>0</DefaultIndex>
+              <TextValueIndex>false</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <DefaultValue>true</DefaultValue>
+              <Popup>false</Popup>
+            </TBoolItem>
+          </GrupItem>
+          <GrupItem>
+            <TBoolItem>
+              <Name>Self Powered</Name>
+              <Symbol>ConfigSelfPowered</Symbol>
+              <TypeSpec>typeYesNo</TypeSpec>
+              <Hint>This setting configures if SELF_POWERED is present in g_config_descriptor[] inside usb_descriptor.c (default: yes)</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>false</EditLine>
+              <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+              <DefaultIndex>0</DefaultIndex>
+              <TextValueIndex>false</TextValueIndex>
+              <RuntimeProperty>false</RuntimeProperty>
+              <CanDelete>false</CanDelete>
+              <IconPopup>false</IconPopup>
+              <DefaultValue>true</DefaultValue>
+              <Popup>false</Popup>
+            </TBoolItem>
+          </GrupItem>
+          <GrupItem>
+            <TIntgItem>
+              <Name>Current Draw (mA)</Name>
+              <Symbol>USBCurrentDraw_mA</Symbol>
+              <Hint>Maximum current used by the device. Configured in usb_descriptor.c (structure g_config_descriptor).</Hint>
+              <ItemLevel>BASIC</ItemLevel>
+              <EditLine>true</EditLine>
+              <DefaultValue>100</DefaultValue>
+              <MinValue>0</MinValue>
+              <MaxValue>512</MaxValue>
+              <Bases>DEC</Bases>
+              <DefaultBase>DEC</DefaultBase>
+              <ExtraHintDisabled>false</ExtraHintDisabled>
+              <ChangeValueIntoRange>false</ChangeValueIntoRange>
+              <RuntimeProperty>false</RuntimeProperty>
+            </TIntgItem>
+          </GrupItem>
+        </Children>
+      </TGrupItem>
     </Property>
   </PropertyList>
   <MethodList>
@@ -804,6 +994,62 @@
     </Method>
     <Method>
       <TMthdItem>
+        <Name>ApplicationStarted</Name>
+        <Symbol>ApplicationStarted</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Returns true if a CDC is running. </Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>Boolean</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>bool #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>TransactionsStarted</Name>
+        <Symbol>TransactionsStarted</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Returns true if USB transactions  have been started.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>Boolean</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>bool #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
         <Name>App_Task</Name>
         <Symbol>App_Task</Symbol>
         <TypeSpec>typeMethod</TypeSpec>
@@ -840,6 +1086,102 @@
         <Scope>PRIVATE</Scope>
         <Declarations>
           <ANSIC>uint8_t #M#_#C#(uint8_t *txBuf, size_t txBufSize)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>StdIOKeyPressed</Name>
+        <Symbol>StdIOKeyPressed</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>StdIO handler for Shell</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>Boolean</ReturnType>
+        <RetHint>True if there are characters in the input/RX buffer</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>bool #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>StdIOReadChar</Name>
+        <Symbol>StdIOReadChar</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>StdIO Handler for reading a character. It returns a zero byte if there is no character.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>void</RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>c</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to where to store the received character</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(uint8_t *c)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>StdIOSendChar</Name>
+        <Symbol>StdIOSendChar</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>StdIO handler to sends a character.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>void</RetHint>
+        <ParamCount>1</ParamCount>
+        <Parameter>
+          <ParName>ch</ParName>
+          <ParType>uint8_t</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Character to send.</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(uint8_t ch)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>

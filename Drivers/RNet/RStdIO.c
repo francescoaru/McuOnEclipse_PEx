@@ -41,7 +41,7 @@ xQueueHandle GetQueueForType(RSTDIO_QueueType queueType) {
     case RSTDIO_QUEUE_TX_IN:  return RSTDIO_TxStdInQ;
     case RSTDIO_QUEUE_TX_OUT: return RSTDIO_TxStdOutQ;
     case RSTDIO_QUEUE_TX_ERR: return RSTDIO_TxStdErrQ;
-    default: return NULL;
+    default: break;
   }
   return NULL;
 }
@@ -54,7 +54,7 @@ xQueueHandle GetQueueForType(RSTDIO_QueueType queueType) {
  */
 static uint8_t AddToQueue(xQueueHandle queue, const unsigned char *data, size_t dataSize) {
   while(dataSize!=0) {
-    if (%@RTOS@'ModuleName'%.xQueueSendToBack(queue, data, RSTDIO_QUEUE_TIMEOUT_MS/portTICK_RATE_MS)!=pdPASS) {
+    if (%@RTOS@'ModuleName'%.xQueueSendToBack(queue, data, RSTDIO_QUEUE_TIMEOUT_MS/portTICK_PERIOD_MS)!=pdPASS) {
       return ERR_FAULT;
     }
     data++;
@@ -71,7 +71,7 @@ uint8_t RSTDIO_AddToQueue(RSTDIO_QueueType queueType, const unsigned char *data,
     case RSTDIO_QUEUE_TX_IN:  return AddToQueue(RSTDIO_TxStdInQ,  data, dataSize);
     case RSTDIO_QUEUE_TX_OUT: return AddToQueue(RSTDIO_TxStdOutQ, data, dataSize);
     case RSTDIO_QUEUE_TX_ERR: return AddToQueue(RSTDIO_TxStdErrQ, data, dataSize);
-    default: return ERR_FAILED;
+    default: break;
   }
   return ERR_FAILED;
 }
@@ -93,7 +93,7 @@ uint8_t RSTDIO_NofInQueue(RSTDIO_QueueType queueType) {
     case RSTDIO_QUEUE_TX_IN:  return RSTDIO_NofElements(RSTDIO_TxStdInQ);
     case RSTDIO_QUEUE_TX_OUT: return RSTDIO_NofElements(RSTDIO_TxStdOutQ);
     case RSTDIO_QUEUE_TX_ERR: return RSTDIO_NofElements(RSTDIO_TxStdErrQ);
-    default: return 0;
+    default: break;
   }
   return 0;
 }
@@ -122,7 +122,7 @@ uint8_t RSTDIO_ReceiveQueueChar(RSTDIO_QueueType queueType) {
     case RSTDIO_QUEUE_TX_IN:  return RSTDIO_ReceiveChar(RSTDIO_TxStdInQ);
     case RSTDIO_QUEUE_TX_OUT: return RSTDIO_ReceiveChar(RSTDIO_TxStdOutQ);
     case RSTDIO_QUEUE_TX_ERR: return RSTDIO_ReceiveChar(RSTDIO_TxStdErrQ);
-    default: return '\0';
+    default: break;
   }
   return '\0';
 }
@@ -131,13 +131,13 @@ uint8_t RSTDIO_HandleStdioRxMessage(RAPP_MSG_Type type, uint8_t size, uint8_t *d
   (void)srcAddr;
   (void)packet;
   switch(type) {
-    case RAPP_MSG_TYPE_STDIN: /* <type><size><data */
+    case RAPP_MSG_TYPE_STDIN: /* <type><size><data> */
       *handled = TRUE;
       return RSTDIO_AddToQueue(RSTDIO_QUEUE_RX_IN, data, size);
-    case RAPP_MSG_TYPE_STDOUT: /* <type><size><data */
+    case RAPP_MSG_TYPE_STDOUT: /* <type><size><data> */
       *handled = TRUE;
       return RSTDIO_AddToQueue(RSTDIO_QUEUE_RX_OUT, data, size);
-    case RAPP_MSG_TYPE_STDERR: /* <type><size><data */
+    case RAPP_MSG_TYPE_STDERR: /* <type><size><data> */
       *handled = TRUE;
       return RSTDIO_AddToQueue(RSTDIO_QUEUE_RX_ERR, data, size);
     default:
@@ -319,35 +319,53 @@ void RSTDIO_Init(void) {
     for(;;){} /* out of memory? */
   }
   %@RTOS@'ModuleName'%.vQueueAddToRegistry(RSTDIO_RxStdInQ, "RxStdInQ");
+#if configUSE_TRACE_HOOKS
+  vTraceSetQueueName(RSTDIO_RxStdInQ, "RxStdInQ");
+#endif
 
   RSTDIO_RxStdOutQ = %@RTOS@'ModuleName'%.xQueueCreate(RSTDIO_QUEUE_LENGTH, RSTDIO_QUEUE_ITEM_SIZE);
   if (RSTDIO_RxStdOutQ==NULL) {
     for(;;){} /* out of memory? */
   }
   %@RTOS@'ModuleName'%.vQueueAddToRegistry(RSTDIO_RxStdOutQ, "RxStdOutQ");
+#if configUSE_TRACE_HOOKS
+  vTraceSetQueueName(RSTDIO_RxStdOutQ, "RxStdOutQ");
+#endif
 
   RSTDIO_RxStdErrQ = %@RTOS@'ModuleName'%.xQueueCreate(RSTDIO_QUEUE_LENGTH, RSTDIO_QUEUE_ITEM_SIZE);
   if (RSTDIO_RxStdErrQ==NULL) {
     for(;;){} /* out of memory? */
   }
   %@RTOS@'ModuleName'%.vQueueAddToRegistry(RSTDIO_RxStdErrQ, "RxStdErrQ");
+#if configUSE_TRACE_HOOKS
+  vTraceSetQueueName(RSTDIO_RxStdErrQ, "RxStdErrQ");
+#endif
 
   RSTDIO_TxStdInQ = %@RTOS@'ModuleName'%.xQueueCreate(RSTDIO_QUEUE_LENGTH, RSTDIO_QUEUE_ITEM_SIZE);
   if (RSTDIO_TxStdInQ==NULL) {
     for(;;){} /* out of memory? */
   }
   %@RTOS@'ModuleName'%.vQueueAddToRegistry(RSTDIO_TxStdInQ, "TxStdInQ");
+#if configUSE_TRACE_HOOKS
+  vTraceSetQueueName(RSTDIO_TxStdInQ, "TxStdInQ");
+#endif
 
   RSTDIO_TxStdOutQ = %@RTOS@'ModuleName'%.xQueueCreate(RSTDIO_QUEUE_LENGTH, RSTDIO_QUEUE_ITEM_SIZE);
   if (RSTDIO_TxStdOutQ==NULL) {
     for(;;){} /* out of memory? */
   }
   %@RTOS@'ModuleName'%.vQueueAddToRegistry(RSTDIO_TxStdOutQ , "TxStdOutQ");
+#if configUSE_TRACE_HOOKS
+  vTraceSetQueueName(RSTDIO_TxStdOutQ, "TxStdOutQ");
+#endif
 
   RSTDIO_TxStdErrQ = %@RTOS@'ModuleName'%.xQueueCreate(RSTDIO_QUEUE_LENGTH, RSTDIO_QUEUE_ITEM_SIZE);
   if (RSTDIO_TxStdErrQ==NULL) {
     for(;;){} /* out of memory? */
   }
   %@RTOS@'ModuleName'%.vQueueAddToRegistry(RSTDIO_TxStdErrQ , "TxStdErrQ");
+#if configUSE_TRACE_HOOKS
+  vTraceSetQueueName(RSTDIO_TxStdErrQ, "TxStdErrQ");
+#endif
 }
 %endif

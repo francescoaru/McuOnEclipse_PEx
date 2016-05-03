@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,7 +8,7 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
 	***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
@@ -77,6 +77,9 @@
  *  That way the a module can interface this wrapper header file instead
  *  of one of the standard FreeRTOS header files.
  */
+%if defined(KinetisSDK)
+#include "%KinetisSDK.h" /* include interface to SDK */
+%endif
 
 %ifdef TickCntr %- non-LDD version
 /* support for trace and access to tick counter */
@@ -122,7 +125,9 @@ portLONG uxGetTickCounterValue(void);
 %elif defined(useARMSysTickTimer) & useARMSysTickTimer='yes'
 %if defined(UseManualClockValues) & UseManualClockValues='yes'  %- have provided manual clock values: no need for Cpu.h
 %else
-#include "%ProcessorModule.h" /* include CPU module because of dependency to CPU clock rate */
+#if %@KinetisSDK@'ModuleName'%.SDK_VERSION_USED == %@KinetisSDK@'ModuleName'%.SDK_VERSION_NONE
+  #include "%ProcessorModule.h" /* include CPU module because of dependency to CPU clock rate */
+#endif
 %endif
 #include "FreeRTOSConfig.h"
 #include "portmacro.h"

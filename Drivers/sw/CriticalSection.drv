@@ -65,16 +65,18 @@
 
 /* MODULE %ModuleName. */
 
-%ifdef SharedModules
-/* Include shared modules, which are used for whole project */
-  %for var from IncludeSharedModules
-#include "%'var'.h"
-  %endfor
-%endif
 /* Include inherited beans */
 %ifdef InhrSymbolList
   %for var from InhrSymbolList
 #include "%@%var@ModuleName.h"
+  %endfor
+%endif
+
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%ifdef SharedModules
+/* Include shared modules, which are used for whole project */
+  %for var from IncludeSharedModules
+  #include "%'var'.h"
   %endfor
 %endif
 %-BW_CUSTOM_INCLUDE_START_H
@@ -86,9 +88,8 @@
 %-
 %-BW_METHOD_MACROS_START
 %-BW_METHOD_MACROS_END
-
-#include "%ProcessorModule.h"
-
+  #include "%ProcessorModule.h"
+#endif
 %-STARTUSERTYPES - Do not make changes between lines (included this lines) marked with %-STARTUSERTYPES and %-ENDUSRTYPES
 
 %-ENDUSRTYPES
@@ -138,12 +139,14 @@
   taskENTER_CRITICAL()
 %elif (%UseProcessorExpertDefault='no') & (%CPUfamily = "Kinetis") & (%Compiler = "GNUC")
   do {                                  \
+    /*lint -save  -esym(529,cpuSR) Symbol 'cpuSR' not subsequently referenced. */\
     __asm (                             \
     "mrs   r0, PRIMASK     \n\t"        \
     "cpsid i               \n\t"        \
     "strb r0, %%[output]   \n\t"         \
     : [output] "=m" (cpuSR) :: "r0");   \
     __asm ("" ::: "memory");            \
+    /*lint -restore Symbol 'cpuSR' not subsequently referenced. */\
   } while(0)
 %else
   EnterCritical()

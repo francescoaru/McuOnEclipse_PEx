@@ -219,7 +219,7 @@ LI.EXP {
 <li>
 <a name="CPUDevice">
 <b>CPU</b></a> - Device to be used.<br /><br />
-There are 21 options:<br />
+There are 22 options:<br />
 <ul>
   <li><u>MC9S08JM16</u>: MC9S08JM16</li>
   <li><u>MC9S08JM60</u>: MC9S08JM60</li>
@@ -229,15 +229,16 @@ There are 21 options:<br />
   <li><u>MCF51MM256</u>: ColdFire V1 MCF51MM256</li>
   <li><u>MCF52259</u>: ColdFire V2 MCF52259</li>
   <li><u>Kinetis KL24Z48</u>: Kinetis KL24Z48</li>
-  <li><u>Kinetis KL25</u>: Kinetis L2K family (e.g. KL25Z)</li>
+  <li><u>Kinetis KL25Z48</u>: Kinetis L2K family (e.g. KL25Z)</li>
   <li><u>Kinetis KL26Z48</u>: E.g. FRDM-KL26Z48M</li>
   <li><u>Kinetis KL46Z48</u>: E.g. TWR-KL46Z48M</li>
   <li><u>Kinetis K20D50</u>: Kinetis K20D50 (e.g. FRDM-K20D50M)</li>
-  <li><u>Kinetis K20D72</u>: Kinetis K20 72 MHz (K20DX)</li>
+  <li><u>Kinetis K20D72, K20D100</u>: Kinetis K20 72 MHz (K20DX) or K20 100 MHz (e.g. MK20DN512)</li>
   <li><u>Kinetis K21D50</u>: Kinetis K21D50 (e.g. TWR-K21D50M)</li>
   <li><u>Kinetis K21F120</u>: Kinetis K21F120 (e.g. TWR-K21F120M)</li>
   <li><u>Kinetis K22F120</u>: Kinetis K22F50, K22F120</li>
   <li><u>Kinetis K22FN120</u>: FRDM-K22F (Kinetis K2)</li>
+  <li><u>Kinetis K24FN120</u>: Kinetis K24FN120</li>
   <li><u>Kinetis K40</u>: Kinetis K40</li>
   <li><u>Kinetis K60</u>: Kinetis K60</li>
   <li><u>Kinetis K64F</u>: Kinetis K64F (e.g. FRDM-K64F)</li>
@@ -264,6 +265,20 @@ The following items are available only if the group is enabled (the value is "En
 <li>
 <a name="TxBuffer">
 <b>Send Buffer</b></a> - Interface to ring buffer for sending data. Elements in the bufer must be 16bits each.
+</li>
+<li>
+<a name="PowerOptionsGroup">
+<b>Power Options</b></a> - These options configure power options in the USB descriptor (g_config_descriptor[] inside usb_descriptor.c). S08/CFv1 are both self powered (its compulsory to set bus powered)
+<ul>
+  <li>
+  <a name="ConfigBusPowered">
+  <b>Bus Powered</b></a> - This setting configures if BUS_POWERED is present in g_config_descriptor[] inside usb_descriptor.c (default: yes)
+  </li>
+  <li>
+  <a name="ConfigSelfPowered">
+  <b>Self Powered</b></a> - This setting configures if SELF_POWERED is present in g_config_descriptor[] inside usb_descriptor.c (default: yes)
+  </li>
+</ul>
 </li>
 
      </ul>

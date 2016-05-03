@@ -65,17 +65,18 @@
 #define __%'ModuleName'_H
 
 /* MODULE %ModuleName. */
-
-%ifdef SharedModules
-/* Include shared modules, which are used for whole project */
-  %for var from IncludeSharedModules
-#include "%'var'.h"
-  %endfor
-%endif
 /* Include inherited beans */
 %ifdef InhrSymbolList
   %for var from InhrSymbolList
 #include "%@%var@ModuleName.h"
+  %endfor
+%endif
+
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%ifdef SharedModules
+/* Include shared modules, which are used for whole project */
+  %for var from IncludeSharedModules
+  #include "%'var'.h"
   %endfor
 %endif
 %-BW_CUSTOM_INCLUDE_START_H
@@ -87,8 +88,11 @@
 %-
 %-BW_METHOD_MACROS_START
 %-BW_METHOD_MACROS_END
-
-#include "%ProcessorModule.h"
+  #include "%ProcessorModule.h"
+#else
+  /* event handler */
+  void EVNT1_AppHandleEvent(uint8_t event);
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,7 +121,7 @@ extern "C" {
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN SetEvent
 %ifdef SetEvent
-void %'ModuleName'%.%SetEvent(byte event);
+void %'ModuleName'%.%SetEvent(uint8_t event);
 %define! Parevent
 %include Common\SimpleEventsSetEvent.Inc
 
@@ -140,7 +144,7 @@ void %'ModuleName'%.Init(void);
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN GetEvent
 %ifdef GetEvent
-bool %'ModuleName'%.%GetEvent(byte event);
+bool %'ModuleName'%.%GetEvent(uint8_t event);
 %define! Parevent
 %define! RetVal
 %include Common\SimpleEventsGetEvent.Inc
@@ -150,7 +154,7 @@ bool %'ModuleName'%.%GetEvent(byte event);
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN ClearEvent
 %ifdef ClearEvent
-void %'ModuleName'%.%ClearEvent(byte event);
+void %'ModuleName'%.%ClearEvent(uint8_t event);
 %define! Parevent
 %include Common\SimpleEventsClearEvent.Inc
 
@@ -171,7 +175,7 @@ bool %'ModuleName'%.%EventsPending(void);
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN GetClearEvent
 %ifdef GetClearEvent
-bool %'ModuleName'%.%GetClearEvent(byte event);
+bool %'ModuleName'%.%GetClearEvent(uint8_t event);
 %define! Parevent
 %define! RetVal
 %include Common\SimpleEventsGetClearEvent.Inc
@@ -189,7 +193,7 @@ bool %'ModuleName'%.%GetClearEvent(byte event);
 %-BW_METHOD_BEGIN AppHandleEvent
 %ifdef AppHandleEvent
 %INTERFACE AppHandleEvent
-void %AppHandleEvent(byte event);
+void %AppHandleEvent(uint8_t event);
 %define! Parevent
 %include Common\SimpleEventsAppHandleEvent.Inc
 
@@ -202,11 +206,13 @@ void %AppHandleEvent(byte event);
 %include Common\Header.C
 
 /* MODULE %ModuleName. */
-
-%for var from EventModules
-#include "%var.h"
-%endfor
 #include "%'ModuleName'.h"
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%for var from EventModules
+  #include "%var.h"
+%endfor
+#endif
+
 %-BW_CUSTOM_INCLUDE_START_M
 %- Write your own includes here ...
 %-   Example:
@@ -222,7 +228,7 @@ void %AppHandleEvent(byte event);
 %-
 %define NumOfEvents %EventNameListLines
 #define %'ModuleName'%.NOF_EVENTS  %EventNameListLines           %>40 /*!< Number of events supported */
-static byte %'ModuleName'%.Events[((%'ModuleName'%.NOF_EVENTS-1)/8)+1];%>40 /*!< Bit set of events */
+static uint8_t %'ModuleName'%.Events[((%'ModuleName'%.NOF_EVENTS-1)/8)+1];%>40 /*!< Bit set of events */
 %-BW_CUSTOM_VARIABLE_END
 %-BW_INTERN_METHOD_DECL_START
 %- List of internal methods headers
@@ -233,7 +239,7 @@ static byte %'ModuleName'%.Events[((%'ModuleName'%.NOF_EVENTS-1)/8)+1];%>40 /*!<
 %ifdef SetEvent
 %define! Parevent
 %include Common\SimpleEventsSetEvent.Inc
-void %'ModuleName'%.%SetEvent(byte event)
+void %'ModuleName'%.%SetEvent(uint8_t event)
 {
   %@CriticalSection@'ModuleName'%.CriticalVariable();
 
@@ -250,7 +256,7 @@ void %'ModuleName'%.%SetEvent(byte event)
 %ifdef ClearEvent
 %define! Parevent
 %include Common\SimpleEventsClearEvent.Inc
-void %'ModuleName'%.%ClearEvent(byte event)
+void %'ModuleName'%.%ClearEvent(uint8_t event)
 {
   %@CriticalSection@'ModuleName'%.CriticalVariable();
 
@@ -268,7 +274,7 @@ void %'ModuleName'%.%ClearEvent(byte event)
 %define! Parevent
 %define! RetVal
 %include Common\SimpleEventsGetEvent.Inc
-bool %'ModuleName'%.%GetEvent(byte event)
+bool %'ModuleName'%.%GetEvent(uint8_t event)
 {
   /* event is in the range of 0..255: find bit position in array */
   return (bool)(%'ModuleName'%.Events[event/8]&(0x80>>(event%%8)));
@@ -282,7 +288,7 @@ bool %'ModuleName'%.%GetEvent(byte event)
 %define! Parevent
 %define! RetVal
 %include Common\SimpleEventsGetClearEvent.Inc
-bool %'ModuleName'%.%GetClearEvent(byte event)
+bool %'ModuleName'%.%GetClearEvent(uint8_t event)
 {
   bool isSet = FALSE;
   %@CriticalSection@'ModuleName'%.CriticalVariable();
@@ -335,7 +341,7 @@ bool %'ModuleName'%.%EventsPending(void)
 void %'ModuleName'%.%HandleEvent(void)
 {
   /* Handle the one with the highest priority. */
-  byte event;
+  uint8_t event;
   %@CriticalSection@'ModuleName'%.CriticalVariable();
 
 %if %PowerSave = 'yes'
@@ -353,9 +359,11 @@ void %'ModuleName'%.%HandleEvent(void)
   }
   %@CriticalSection@'ModuleName'%.ExitCritical();
 %if defined(AppHandleEvent)
+  /*lint -save -e522 function lacks side effect  */
   if (event != %'ModuleName'%.NOF_EVENTS) {
     %AppHandleEvent(event);
   }
+  /*lint -restore */
 %endif
 }
 
@@ -369,7 +377,7 @@ void %'ModuleName'%.Init(void)
 %if %NumOfEvents <=. '8'
   %'ModuleName'%.Events[0] = 0; /* initialize data structure */
 %else
-  byte i;
+  uint8_t i;
 
   for(i=0;i<sizeof(%'ModuleName'%.Events); i++) {
     %'ModuleName'%.Events[i] = 0; /* initialize data structure */
@@ -390,7 +398,7 @@ void %'ModuleName'%.Init(void)
 %IMPLEMENTATION AppHandleEvent
 %define! Parevent
 %include Common\SimpleEventsAppHandleEvent.Inc
-void %AppHandleEvent(byte event)
+void %AppHandleEvent(uint8_t event)
 {
   (void)event; /* only to avoid compiler warning about unused variable */
   /* Write your code here ... */

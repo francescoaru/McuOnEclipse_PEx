@@ -1,8 +1,13 @@
 
 [USED_FACES]
-BeanVersion=01.029
+BeanVersion=01.034
 
-InterfacesCount=2
+InterfacesCount=3
+
+Symbol=sdk
+Link=Yes
+Interface=Timeout\sdk
+Version=01.000
 
 Symbol=CriticalSection
 Link=Yes

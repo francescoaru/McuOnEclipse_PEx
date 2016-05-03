@@ -1,8 +1,8 @@
 
 [USED_FACES]
-BeanVersion=01.071
+BeanVersion=01.081
 
-InterfacesCount=4
+InterfacesCount=5
 
 Symbol=Wait
 Link=Yes
@@ -17,9 +17,14 @@ Version=01.003
 Symbol=Serial
 Link=Yes
 Interface=Shell\Serial
-Version=01.010
+Version=01.011
 
 Symbol=CriticalSection
 Link=Yes
 Interface=CriticalSection_I
 Version=01.002
+
+Symbol=sdk
+Link=Yes
+Interface=Shell\KinetisSDK
+Version=01.000

@@ -4,7 +4,7 @@
     <Name>RingBuffer</Name>
     <Description>Implements a ring buffer for 16bit elements</Description>
     <Author>Erich Styger</Author>
-    <Version>01.033</Version>
+    <Version>01.046</Version>
     <Icon>RingBuffer</Icon>
     <TypesFiles>PE,RingBuffer\RingBuffer</TypesFiles>
     <FileVersion>6</FileVersion>
@@ -19,7 +19,7 @@
     <BW_NeedUst>4</BW_NeedUst>
     <BW_NeedCns>0</BW_NeedCns>
     <BeanStatus>PROPOSAL</BeanStatus>
-    <Copyright>License   :  Open Source (LGPL)\nCopyright : (c) Copyright Erich Styger, 2014, all rights reserved.\nWeb: http://www.mcuoneclipse.com\n\nThis an open source software of an embedded component for Processor Expert.\nThis is a free software and is opened for education,  research  and commercial developments under license policy of following terms:\n* This is a free software and there is NO WARRANTY.\n* No restriction on use. You can use, modify and redistribute it for personal, non-profit or commercial product UNDER YOUR RESPONSIBILITY.\n* Redistributions of source code must retain the above copyright notice.</Copyright>
+    <Copyright>License   :  Open Source (LGPL)\nCopyright : (c) Copyright Erich Styger, 2014-2015, all rights reserved.\nWeb: http://www.mcuoneclipse.com\n\nThis an open source software of an embedded component for Processor Expert.\nThis is a free software and is opened for education,  research  and commercial developments under license policy of following terms:\n* This is a free software and there is NO WARRANTY.\n* No restriction on use. You can use, modify and redistribute it for personal, non-profit or commercial product UNDER YOUR RESPONSIBILITY.\n* Redistributions of source code must retain the above copyright notice.</Copyright>
     <Category>SW-User Components</Category>
     <DemoDriver>no</DemoDriver>
     <BeanLevel>High</BeanLevel>
@@ -35,6 +35,20 @@
         <EditLine>true</EditLine>
         <DefaultValue/>
       </TCompNameItem>
+    </Property>
+    <Property>
+      <TInhrLinkItem>
+        <Name>SDK</Name>
+        <Symbol>sdk</Symbol>
+        <TypeSpec>RingBuffer\sdk</TypeSpec>
+        <Hint>Link to SDK</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <DefaultValue/>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <SortStyle/>
+      </TInhrLinkItem>
     </Property>
     <Property>
       <TBoolItem>
@@ -75,7 +89,7 @@
         <Hint>Number of elements for the buffer. If using &lt; 256 bytes, 8bit index type is used, otherwise a 16bit one.</Hint>
         <ItemLevel>BASIC</ItemLevel>
         <EditLine>true</EditLine>
-        <DefaultValue>1</DefaultValue>
+        <DefaultValue>64</DefaultValue>
         <MinValue>1</MinValue>
         <MaxValue>65535</MaxValue>
         <Bases>DEC HEX</Bases>
@@ -167,6 +181,46 @@
     </Method>
     <Method>
       <TMthdItem>
+        <Name>Putn</Name>
+        <Symbol>Putn</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Put a number new element into the buffer.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>uint8_t</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>2</ParamCount>
+        <Parameter>
+          <ParName>elem</ParName>
+          <ParType>ElementType</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to new elements to be put into the buffer</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>nof</ParName>
+          <ParType>BufSizeType</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>number of elements</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>uint8_t #M#_#C#(%'ModuleName'_ElementType *elem, %'ModuleName'_BufSizeType nof)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
         <Name>Get</Name>
         <Symbol>Get</Symbol>
         <TypeSpec>typeMethod</TypeSpec>
@@ -196,6 +250,120 @@
         <Scope>PRIVATE</Scope>
         <Declarations>
           <ANSIC>uint8_t #M#_#C#(%'ModuleName'_ElementType *elemP)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>Peek</Name>
+        <Symbol>Peek</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Returns an element of the buffer without removiing it.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>uint8_t</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>2</ParamCount>
+        <Parameter>
+          <ParName>index</ParName>
+          <ParType>BufSizeType</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Index of element. 0 peeks the top element, 1 the next, and so on.</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>elemP</ParName>
+          <ParType>ElementType</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to where to store the received element</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>uint8_t #M#_#C#(%'ModuleName'_BufSizeType index, %'ModuleName'_ElementType *elemP)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>Compare</Name>
+        <Symbol>Compare</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Compares the elements in the buffer.</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>uint8_t</ReturnType>
+        <RetHint>zero if elements are the same, -1 otherwise</RetHint>
+        <ParamCount>3</ParamCount>
+        <Parameter>
+          <ParName>index</ParName>
+          <ParType>BufSizeType</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>Index of element. 0 peeks the top element, 1 the next, and so on.</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>elemP</ParName>
+          <ParType>ElementType</ParType>
+          <ParPassing>Address</ParPassing>
+          <ParHint>Pointer to elements to compare with</ParHint>
+        </Parameter>
+        <Parameter>
+          <ParName>nof</ParName>
+          <ParType>BufSizeType</ParType>
+          <ParPassing>Value</ParPassing>
+          <ParHint>number of elements to compare</ParHint>
+        </Parameter>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>uint8_t #M#_#C#(%'ModuleName'_BufSizeType index, %'ModuleName'_ElementType *elemP, %'ModuleName'_BufSizeType nof)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>Delete</Name>
+        <Symbol>Delete</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Removes an element from the buffer</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>uint8_t</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>uint8_t #M#_#C#(void)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>
@@ -252,6 +420,34 @@
         <Scope>PRIVATE</Scope>
         <Declarations>
           <ANSIC>%'ModuleName'_BufSizeType #M#_#C#(void)</ANSIC>
+        </Declarations>
+      </TMthdItem>
+    </Method>
+    <Method>
+      <TMthdItem>
+        <Name>Deinit</Name>
+        <Symbol>Deinit</Symbol>
+        <TypeSpec>typeMethod</TypeSpec>
+        <Hint>Driver de-initialization</Hint>
+        <ItemLevel>BASIC</ItemLevel>
+        <EditLine>false</EditLine>
+        <TypeSpecNameChangeAble>false</TypeSpecNameChangeAble>
+        <DefaultIndex>0</DefaultIndex>
+        <TextValueIndex>false</TextValueIndex>
+        <RuntimeProperty>false</RuntimeProperty>
+        <CanDelete>false</CanDelete>
+        <IconPopup>false</IconPopup>
+        <DefaultValue>true</DefaultValue>
+        <Popup>false</Popup>
+        <PublicMethod>true</PublicMethod>
+        <IsAssembler>false</IsAssembler>
+        <InDefinition>true</InDefinition>
+        <ReturnType>void</ReturnType>
+        <RetHint>Error code</RetHint>
+        <ParamCount>0</ParamCount>
+        <Scope>PRIVATE</Scope>
+        <Declarations>
+          <ANSIC>void #M#_#C#(void)</ANSIC>
         </Declarations>
       </TMthdItem>
     </Method>

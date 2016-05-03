@@ -64,17 +64,21 @@
 #define __%'ModuleName'_H
 
 /* MODULE %ModuleName. */
-
-%ifdef SharedModules
-/* Include shared modules, which are used for whole project */
-  %for var from IncludeSharedModules
-#include "%'var'.h"
-  %endfor
-%endif
+#ifndef __HIWARE__ /* Hiware compiler (S08, S12) only supports C89 */
+  #include <stdint.h>
+#endif
 /* Include inherited beans */
 %ifdef InhrSymbolList
   %for var from InhrSymbolList
 #include "%@%var@ModuleName.h"
+  %endfor
+%endif
+
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%ifdef SharedModules
+/* Include shared modules, which are used for whole project */
+  %for var from IncludeSharedModules
+  #include "%'var'.h"
   %endfor
 %endif
 %-BW_CUSTOM_INCLUDE_START_H
@@ -86,8 +90,9 @@
 %-
 %-BW_METHOD_MACROS_START
 %-BW_METHOD_MACROS_END
+  #include "%ProcessorModule.h"
+#endif
 
-#include "%ProcessorModule.h"
 %include sw\CommonSupport.prg
 %-
 %-STARTUSERTYPES - Do not make changes between lines (included this lines) marked with %-STARTUSERTYPES and %-ENDUSRTYPES
@@ -182,11 +187,7 @@ extern uint16_t %'ModuleName'%.currPWM; /* current 16bit PWM value */
 %-BW_METHOD_END Get
 %-BW_METHOD_BEGIN Init
 %ifdef Init
-%if LEDonWithInitialization = 'yes'
-#define %'ModuleName'%.Init() %'ModuleName'%.%On()
-%else
-#define %'ModuleName'%.Init() %'ModuleName'%.%Off()
-%endif
+void %'ModuleName'%.%Init(void);
 %include Common\LEDInit.Inc
 
 %endif %- Init
@@ -211,7 +212,7 @@ void %'ModuleName'%.%Deinit(void);
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN ParseCommand
 %ifdef ParseCommand
-byte %'ModuleName'%.%ParseCommand(const unsigned char *cmd, bool *handled, const %@Shell@'ModuleName'%.StdIOType *io);
+uint8_t %'ModuleName'%.%ParseCommand(const unsigned char *cmd, bool *handled, const %@Shell@'ModuleName'%.StdIOType *io);
 %define! Parcmd
 %define! Parhandled
 %define! Pario
@@ -223,7 +224,7 @@ byte %'ModuleName'%.%ParseCommand(const unsigned char *cmd, bool *handled, const
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN SetRatio16
 %ifdef SetRatio16
-void %'ModuleName'%.%SetRatio16(word ratio);
+void %'ModuleName'%.%SetRatio16(uint16_t ratio);
 %define! Parratio
 %include Common\LEDSetRatio16.Inc
 
@@ -312,7 +313,7 @@ static uint8_t PrintHelp(const %@Shell@'ModuleName'%.StdIOType *io) {
 %define! Pario
 %define! RetVal
 %include Common\LEDParseCommand.Inc
-byte %'ModuleName'%.%ParseCommand(const unsigned char *cmd, bool *handled, const %@Shell@'ModuleName'%.StdIOType *io)
+uint8_t %'ModuleName'%.%ParseCommand(const unsigned char *cmd, bool *handled, const %@Shell@'ModuleName'%.StdIOType *io)
 {
   if (%@Utility@'ModuleName'%.strcmp((char*)cmd, %@Shell@'ModuleName'%.CMD_HELP)==0 || %@Utility@'ModuleName'%.strcmp((char*)cmd, "%'ModuleName' help")==0) {
     *handled = TRUE;
@@ -365,7 +366,6 @@ byte %'ModuleName'%.%ParseCommand(const unsigned char *cmd, bool *handled, const
 %-BW_METHOD_BEGIN On
 %ifdef On
 %include Common\LEDOn.Inc
-%else
 /*
 void %'ModuleName'%.%On(void)
 {
@@ -404,7 +404,7 @@ void %'ModuleName'%.%Neg(void)
 %define! RetVal
 %include Common\LEDGet.Inc
 /*
-byte %'ModuleName'%.%Get(void)
+uint8_t %'ModuleName'%.%Get(void)
 {
   *** This method is implemented as macro in the header file
 }
@@ -412,25 +412,13 @@ byte %'ModuleName'%.%Get(void)
 
 %endif %- Get
 %-BW_METHOD_END Get
-%-BW_METHOD_BEGIN Init
-%ifdef Init
-%include Common\LEDInit.Inc
-/*
-void %'ModuleName'%.%Init(void)
-{
-  *** This method is implemented as macro in the header file
-}
-*/
-
-%endif %- Init
-%-BW_METHOD_END Init
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN Put
 %ifdef Put
 %define! Parval
 %include Common\LEDPut.Inc
 /*
-void %'ModuleName'%.%Put(byte val)
+void %'ModuleName'%.%Put(uint8_t val)
 {
   *** This method is implemented as macro in the header file
 }
@@ -439,11 +427,40 @@ void %'ModuleName'%.%Put(byte val)
 %endif %- Put
 %-BW_METHOD_END Put
 %-************************************************************************************************************
+%-BW_METHOD_BEGIN Init
+%ifdef Init
+%include Common\LEDInit.Inc
+void %'ModuleName'%.%Init(void)
+{
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED != %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%if defined(LEDPin)
+  %@LEDPin@'ModuleName'%.Init();
+%else
+  #warning "PWM mode not yet implemented with the SDK!"
+%endif
+#endif
+%if LEDonWithInitialization = 'yes'
+  %'ModuleName'%.%On();
+%else
+  %'ModuleName'%.%Off();
+%endif
+}
+
+%endif %- Init
+%-BW_METHOD_END Init
+%-************************************************************************************************************
 %-BW_METHOD_BEGIN Deinit
 %ifdef Deinit
 %include Common\LEDDeinit.Inc
 void %'ModuleName'%.%Deinit(void)
 {
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED != %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%if defined(LEDPin)
+  %@LEDPin@'ModuleName'%.Deinit();
+%else
+  #warning "PWM mode not yet implemented with the SDK!"
+%endif
+#endif
 }
 
 %endif %- Deinit
@@ -453,7 +470,7 @@ void %'ModuleName'%.%Deinit(void)
 %ifdef SetRatio16
 %define! Parratio
 %include Common\LEDSetRatio16.Inc
-void %'ModuleName'%.%SetRatio16(word ratio)
+void %'ModuleName'%.%SetRatio16(uint16_t ratio)
 {
 %if defined(LEDPin)
   /* on/off LED: binary on or off */

@@ -322,6 +322,51 @@ uint8_t %'ModuleName'%.%Deinit(void);
 
 %endif %- Deinit
 %-BW_METHOD_END Deinit
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN StdIOKeyPressed
+%ifdef StdIOKeyPressed
+bool %'ModuleName'%.%StdIOKeyPressed(void);
+%define! RetVal
+%include Common\FSL_USB_CDC_DeviceStdIOKeyPressed.Inc
+
+%endif %- StdIOKeyPressed
+%-BW_METHOD_END StdIOKeyPressed
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN StdIOReadChar
+%ifdef StdIOReadChar
+void %'ModuleName'%.%StdIOReadChar(uint8_t *c);
+%define! Parc
+%include Common\FSL_USB_CDC_DeviceStdIOReadChar.Inc
+
+%endif %- StdIOReadChar
+%-BW_METHOD_END StdIOReadChar
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN StdIOSendChar
+%ifdef StdIOSendChar
+void %'ModuleName'%.%StdIOSendChar(uint8_t ch);
+%define! Parch
+%include Common\FSL_USB_CDC_DeviceStdIOSendChar.Inc
+
+%endif %- StdIOSendChar
+%-BW_METHOD_END StdIOSendChar
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN ApplicationStarted
+%ifdef ApplicationStarted
+bool %'ModuleName'%.%ApplicationStarted(void);
+%define! RetVal
+%include Common\FSL_USB_CDC_DeviceApplicationStarted.Inc
+
+%endif %- ApplicationStarted
+%-BW_METHOD_END ApplicationStarted
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN TransactionsStarted
+%ifdef TransactionsStarted
+bool %'ModuleName'%.%TransactionsStarted(void);
+%define! RetVal
+%include Common\FSL_USB_CDC_DeviceTransactionsStarted.Inc
+
+%endif %- TransactionsStarted
+%-BW_METHOD_END TransactionsStarted
 %-BW_DEFINITION_END
 /* END %ModuleName. */
 
@@ -385,7 +430,6 @@ static volatile boolean start_app = FALSE;
 
 /* Virtual COM Application Carrier Activate Flag */
 static volatile boolean start_transactions = FALSE;
-
 static volatile boolean transactionOngoing = FALSE;
 %-
 %-BW_CUSTOM_VARIABLE_END
@@ -584,11 +628,11 @@ void %'ModuleName'%.%App_Callback(uint8_t controller_ID, uint8_t event_type, voi
     /* Copy Received Data buffer to Application Buffer */
     USB_PACKET_SIZE BytesToBeCopied;
     APP_DATA_STRUCT *dp_rcv = (APP_DATA_STRUCT*)val;
-    uint_8 index;
+    uint_8 idx;
 
     BytesToBeCopied = (USB_PACKET_SIZE)((dp_rcv->data_size>%'ModuleName'%.DATA_BUFF_SIZE) ? %'ModuleName'%.DATA_BUFF_SIZE:dp_rcv->data_size);
-    for(index = 0; index<BytesToBeCopied ; index++) {
-      if (%@RxBuffer@'ModuleName'%.Put(dp_rcv->data_ptr[index])!=ERR_OK) {
+    for(idx = 0; idx<BytesToBeCopied ; idx++) {
+      if (%@RxBuffer@'ModuleName'%.Put(dp_rcv->data_ptr[idx])!=ERR_OK) {
         /* Failed to put byte into buffer. Is the buffer to small? Then increase the Rx buffer.
            Otherwise not much we could do here, so we are loosing byte here.
          */
@@ -634,7 +678,9 @@ void %'ModuleName'%.%Notify_Callback(uint8_t controller_ID, uint8_t event_type, 
       start_transactions = FALSE;
     }
   }
+#if 1 /* not needed any more? see https://community.freescale.com/message/605537?et=watches.email.thread# */
   start_transactions = TRUE; /* ??? see http://forums.freescale.com/t5/Freescale-MQX-trade-USB-Host/Cant-get-CDC-virtual-com-demo-to-work-with-VB2005-on-xp-sp3/m-p/92713#M302 */
+#endif
 }
 
 %endif %- Notify_Callback
@@ -680,7 +726,9 @@ uint8_t %'ModuleName'%.SendDataBlock(uint8_t *data, uint16_t dataSize)
   timeout = %@Timeout@'ModuleName'%.GetCounter(%AppTaskTimeout/%@Timeout@'ModuleName'%.TICK_PERIOD_MS); /* set up timeout counter */
 %endif
   while(transactionOngoing) { /* wait until transaction is finished */
+    /*lint -save -e522 function lacks side-effects */
     %'ModuleName'%.RunUsbEngine();
+    /*lint -restore */
 %if defined(Timeout) & %AppTaskTimeout >. "0"
     if (%@Timeout@'ModuleName'%.CounterExpired(timeout)) {
 %if defined(OnError)
@@ -689,6 +737,9 @@ uint8_t %'ModuleName'%.SendDataBlock(uint8_t *data, uint16_t dataSize)
       res = ERR_FAILED;
       break;
     }
+%endif
+%if defined(SendDataBlockWaitms) & SendDataBlockWaitms >. '0'
+    %@Wait@'ModuleName'%.WaitOSms(%SendDataBlockWaitms); /* wait some time */
 %endif
   }
 %if defined(Timeout) & %AppTaskTimeout >. "0"
@@ -707,10 +758,13 @@ uint8_t %'ModuleName'%.SendDataBlock(uint8_t *data, uint16_t dataSize)
 %include Common\FSL_USB_CDC_DeviceApp_Task.Inc
 uint8_t %'ModuleName'%.%App_Task(uint8_t *txBuf, size_t txBufSize)
 {
-  uint8_t i, res;
+  size_t i;
+  uint8_t res;
 
   /* device is %CPUDevice */
+  /*lint -save -e522 function lacks side-effects */
   %'ModuleName'%.RunUsbEngine();
+  /*lint -restore */
   /* call the periodic task function */
   USB_Class_CDC_Periodic_Task();
   /* check whether enumeration is complete or not */
@@ -755,6 +809,11 @@ uint8_t %'ModuleName'%.%Deinit(void)
   uint_8 err;
 
   err = USB_Class_CDC_DeInit(CONTROLLER_ID);
+  %@RxBuffer@'ModuleName'%.Deinit();
+  %@TxBuffer@'ModuleName'%.Deinit();
+  start_app = FALSE;
+  start_transactions = FALSE;
+  transactionOngoing = FALSE;
   if(err != USB_OK) {
     /* Error deinitializing USB-CDC Class */
 %if defined(OnError)
@@ -776,6 +835,11 @@ uint8_t %'ModuleName'%.%Init(void)
 {
   uint_8 err;
 
+  start_app = FALSE;
+  start_transactions = FALSE;
+  transactionOngoing = FALSE;
+  %@RxBuffer@'ModuleName'%.Init();
+  %@TxBuffer@'ModuleName'%.Init();
   err = USB_Class_CDC_Init(CONTROLLER_ID, %'ModuleName'%.%App_Callback, NULL, %'ModuleName'%.%Notify_Callback, TRUE);
   if(err != USB_OK) {
     /* Error initializing USB-CDC Class */
@@ -844,6 +908,69 @@ void %'ModuleName'%.%ClearTxBuffer(void)
 
 %endif %- ClearTxBuffer
 %-BW_METHOD_END ClearTxBuffer
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN StdIOKeyPressed
+%ifdef StdIOKeyPressed
+%define! RetVal
+%include Common\FSL_USB_CDC_DeviceStdIOKeyPressed.Inc
+bool %'ModuleName'%.%StdIOKeyPressed(void)
+{
+  return (bool)((%'ModuleName'%.%GetCharsInRxBuf()==0U) ? FALSE : TRUE); /* true if there are characters in receive buffer */
+}
+
+%endif %- StdIOKeyPressed
+%-BW_METHOD_END StdIOKeyPressed
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN StdIOReadChar
+%ifdef StdIOReadChar
+%define! Parc
+%include Common\FSL_USB_CDC_DeviceStdIOReadChar.Inc
+void %'ModuleName'%.%StdIOReadChar(uint8_t *c)
+{
+  if (%'ModuleName'%.%RecvChar((uint8_t *)c) != ERR_OK) {
+    /* failed to receive character: return a zero character */
+    *c = '\0';
+  }
+}
+
+%endif %- StdIOReadChar
+%-BW_METHOD_END StdIOReadChar
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN StdIOSendChar
+%ifdef StdIOSendChar
+%define! Parch
+%include Common\FSL_USB_CDC_DeviceStdIOSendChar.Inc
+void %'ModuleName'%.%StdIOSendChar(uint8_t ch)
+{
+  while (%'ModuleName'%.%SendChar((uint8_t)ch)==ERR_TXFULL){} /* Send char */
+}
+
+%endif %- StdIOSendChar
+%-BW_METHOD_END StdIOSendChar
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN ApplicationStarted
+%ifdef ApplicationStarted
+%define! RetVal
+%include Common\FSL_USB_CDC_DeviceApplicationStarted.Inc
+bool %'ModuleName'%.%ApplicationStarted(void)
+{
+  return start_app; /* TRUE if CDC is running */
+}
+
+%endif %- ApplicationStarted
+%-BW_METHOD_END ApplicationStarted
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN TransactionsStarted
+%ifdef TransactionsStarted
+%define! RetVal
+%include Common\FSL_USB_CDC_DeviceTransactionsStarted.Inc
+bool %'ModuleName'%.%TransactionsStarted(void)
+{
+  return start_transactions; /* port open on host */
+}
+
+%endif %- TransactionsStarted
+%-BW_METHOD_END TransactionsStarted
 %-BW_IMPLEMENT_END
 /* END %ModuleName. */
 

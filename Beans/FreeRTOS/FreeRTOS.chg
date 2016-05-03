@@ -1,5 +1,5 @@
-%set FreeRTOSVersion Value V8.2.0
-%set FreeRTOSVersion ExtraText V8.2.0
+%set FreeRTOSVersion Value V8.2.3
+%set FreeRTOSVersion ExtraText V8.2.3
 %ifdef CPUfamily
 %if (CPUfamily = "ColdFireV1")
   %set ColdFireV1CPUSpecific ReadOnly no
@@ -144,18 +144,10 @@
   %- %set ARMFamilyType ReadOnly no
   %- %set ARMFamilyType Value Enabled
   %if defined(ARMFamilyType) & ARMFamilyType="M0+"
-    %- M0+ does not have floating point unit
-    %set M4FFloatingPointSupport Value no
-    %set M4FFloatingPointSupport ReadOnly yes
     %set ARMLowestInterrutpPriority Value d:3
   %elif defined(ARMFamilyType) & ARMFamilyType="M4F"
-    %- M4F does have floating point unit
-    %- %set M4FFloatingPointSupport Value yes
-    %set M4FFloatingPointSupport ReadOnly no
     %set ARMLowestInterrutpPriority Value d:15
   %else %- M4
-    %set M4FFloatingPointSupport Value no
-    %set M4FFloatingPointSupport ReadOnly yes
     %set ARMLowestInterrutpPriority Value d:15
   %endif
   %if defined(TickTimerLDD) & %@TickTimerLDD@MainModule != "SysTick"
@@ -199,4 +191,18 @@
   %set xQueueSelectFromSetFromISR Selection never
 %endif
 
+%if defined(MemoryScheme) & %MemoryScheme='Scheme3'
+  %- malloc scheme
+  %set TotalHeapSize ReadOnly yes
+%else
+  %set TotalHeapSize ReadOnly no
+%endif
+
 %endif %- CPUfamily
+
+%if defined(ShellEnabled) & %ShellEnabled='yes'
+ %set UseTraceFacility Value yes
+ %set UseTraceFacility ReadOnly yes
+%else
+ %set UseTraceFacility ReadOnly no
+%endif

@@ -190,7 +190,7 @@ LI.EXP {
                 
                 FreeRTOS
               </div>
-              <div class="descrtext">FreeRTOS</div>
+              <div class="descrtext">FreeRTOS McuOnEclipse Port with FreeRTOS+Trace</div>
               <div class="info_name">Component Level: <span class="info_text"><a href="../../DOCs/BeanCategoriesInfo.html#LevelAbstraction">High</a></span></div>
               <div class="info_name">Category: 
                 <span class="info_text">
@@ -227,8 +227,28 @@ LI.EXP {
 <b>RTOS Version</b></a> - Identifies the RTOS version
 </li>
 <li>
+<a name="KinetisSDK">
+<b>Kinetis SDK</b></a> - Link to Kinetis SDK component which maps Processor Expert types like byte to uint8_t.
+</li>
+<li>
+<a name="KinetisSDKGroup">
+<b>Kinetis SDK</b></a> - Group used to configure the component if used with the Kinetis SDK.<br />
+The following items are available only if the group is enabled (the value is "Enabled"):<br />
+
+<ul>
+  <li>
+  <a name="GenerateRTOSPExMacros">
+  <b>Generate PEX_RTOS Macros</b></a> - If enabled, the component creates PEX_RTOS_INIT() and PEX_RTOS_START() macros in the component header file. As the Kinetis SDK does generate them, the default setting is 'no', otherwise macros will be defined twice.
+  </li>
+  <li>
+  <a name="GenerateOSAFunctions">
+  <b>Generate OSA Functions</b></a> - If enabled, the component creates OSA_Init() and OSA_Start() functions which are needed for the OS Adaption layer of the Kinetis SDK.
+  </li>
+</ul>
+</li>
+<li>
 <a name="CustomPortGroup">
-<b>Custom Port</b></a> - Allows custom settings for FreeRTOS port
+<b>Custom Port</b></a> - Allows custom settings for FreeRTOS port. Only necessary to generate RTOS source code and then use it without Processor Expert project.
 <ul>
   <li>
   <a name="configCOMPILER">
@@ -315,22 +335,6 @@ There are 4 options:<br />
 </ul>
 </li>
 <li>
-<a name="KinetisSDKGroup">
-<b>Kinetis SDK</b></a> - Group used to configure the component for the Kinetis SDK<br />
-The following items are available only if the group is enabled (the value is "Enabled"):<br />
-
-<ul>
-  <li>
-  <a name="GenerateRTOSPExMacros">
-  <b>Generate RTOS PEx Macros</b></a> - If enabled, the component creates PEX_RTOS_INIT() and PEX_RTOS_START() macros in the component header file.
-  </li>
-  <li>
-  <a name="KinetisSDK">
-  <b>Kinetis SDK</b></a> - Link to Kinetis SDK component
-  </li>
-</ul>
-</li>
-<li>
 <a name="IsClassicCW">
 <b>Classic CodeWarrior</b></a> - If you are using this component in classic (non-eclipse based) CodeWarrior, then this setting has to be set to 'yes'. If you want to know why: The reason is that classic CodeWarrior does not come with the common_RTOSAdaptor.prg file. As such a test has to be present  in FreeRTOS.ts2.
 </li>
@@ -343,16 +347,36 @@ The following items are available only if the group is enabled (the value is "En
 <b>configASSERT defined</b></a> - If set to 'yes', FreeRTOSConfig.h will have the configASSERT() macro defined. lt is used in different places in the Kernel to verify proper operation. For better code density/speed you might set this option to 'no'.
 </li>
 <li>
+<a name="EnableGDBDebugHelper">
+<b>Enable GDB Debug Helper</b></a> - If enabled, a debug helper for GDB is enabled to do thread stack debugging with a special vPortPendSVHandler(). This setting configures the configGDB_HELPER macro. 
+</li>
+<li>
 <a name="UseApplicationTaskTags">
 <b>Application Task Tags</b></a> - This configures configUSE_APPLICATION_TASK_TAG. If enabled, the methodsxTaskGetApplicationTaskTag(), vTaskSetApplicationTaskTag() and xTaskCallApplicationTaskHook() are enabled.
+</li>
+<li>
+<a name="NumThreadLocalStoragePointers">
+<b>Thread Local Storage Pointers</b></a> - Number of thread local storage pointers, zero to disable functionality. Defines configNUM_THREAD_LOCAL_STORAGE_POINTERS
 </li>
 <li>
 <a name="UseTraceFacility">
 <b>Use Trace Facility</b></a> - Set to 1 if you wish the trace visualisation functionality to be available, or 0 if the trace functionality is not going to be used. If you use the trace functionality a trace buffer must also be provided. If using Trace Hooks, this property is automatically enabled. This setting controls the configUSE_TRACE_FACILITY macro.
 </li>
 <li>
+<a name="SeggerSystemViewerGroup">
+<b>Segger System Viewer Trace</b></a> - Enables Segger System Viewer Trace. Percepio Trace has to be disabled, and 'Use Trace Facility' has to be enabled.<br />
+The following items are available only if the group is enabled (the value is "Enabled"):<br />
+
+<ul>
+  <li>
+  <a name="SeggerSystemViewer">
+  <b>Segger System Viewer</b></a> - Link to Segger System Viewer component
+  </li>
+</ul>
+</li>
+<li>
 <a name="UseTraceHooksGroup">
-<b>Trace Hooks</b></a> - If enabled, you can condfigure trace hooks to collect information about the RTOS behaviour.<br />
+<b>Percepio Trace</b></a> - If enabled, you can condfigure trace hooks to collect information about the RTOS behaviour. Segger System Viewer has to be disabled.<br />
 The following items are available only if the group is enabled (the value is "Enabled"):<br />
 
 <ul>
@@ -490,17 +514,15 @@ The following items are available only if the group is enabled (the value is "En
     <li>
     <a name="ARMFamilyType">
     <b>ARM Family</b></a> - Specifies the ARM family used<br /><br />
-There are 3 options:<br />
+There are 5 options:<br />
 <ul>
-  <li><u>Cortex M0+</u>: ARM Cortex M0+ (Kinetis L family)</li>
-  <li><u>Cortex M4</u>: ARM Cortex M4 (Kinetis K family)</li>
-  <li><u>Cortex M4F</u>: ARM Cortex M4 (Kinetis K family with floating point unit)</li>
+  <li><u>Cortex-M0+</u>: ARM Cortex-M0+ (Kinetis L family)</li>
+  <li><u>Cortex-M4</u>: ARM Cortex-M4 (Kinetis K family)</li>
+  <li><u>Cortex-M4F</u>: ARM Cortex M4 (Kinetis K family with floating point unit)</li>
+  <li><u>Cortex-M7</u>: ARM Cortex-M7</li>
+  <li><u>Cortex-M7F</u>: ARM Cortex-M7 with FPU</li>
 </ul><br />
 
-    </li>
-    <li>
-    <a name="M4FFloatingPointSupport">
-    <b>Floating Point Support</b></a> - If enabled, the port is supporting the different stack frame created by the Cortex M4F
     </li>
     <li>
     <a name="KinetisLibraryMaxInterruptPriority">
@@ -565,6 +587,10 @@ The following items are available only if the group is enabled (the value is "En
   <li>
   <a name="UsePreemption">
   <b>Preemptive</b></a> - Set to 1 to use the preemptive kernel, or 0 to use the cooperative kernel. (configUSE_PREEMPTION flag)
+  </li>
+  <li>
+  <a name="UseTimeSlicing">
+  <b>Time Slicing</b></a> - Set to 1 (default) time will be time slices among the ready high priority tasks of same priority (configUSE_TIME_SLICING flag)
   </li>
   <li>
   <a name="UseCoroutines">
@@ -743,15 +769,19 @@ The following items are available only if the group is enabled (the value is "En
 <b>Memory</b></a> - This group controls the heap and memory settings
 <ul>
   <li>
+  <a name="ApplicationAllocatedHeap">
+  <b>Application allocated Heap</b></a> - Configures configAPPLICATION_ALLOCATED_HEAP in FreeRTOSConfig.h. If set to yes, the application needs to define the heap memory variable, e.g. to use special segment attributes.
+  </li>
+  <li>
   <a name="MemoryScheme">
   <b>Memory Allocation Scheme</b></a> - Scheme 1:<br />This is the simplest scheme of all. It does not permit memory to be freed once it has been allocated, but despite this is suitable for a surprisingly large number of applications.<br /><br />Scheme 2:<br />This scheme uses a best fit algorithm and, unlike scheme 1, allows previously allocated blocks to be freed. It does not however combine adjacent free blocks into a single large block.<br /><br />Scheme 3:<br />This is just a wrapper for the standard malloc() and free() functions. It makes them thread safe.<br /><br />Scheme 4:<br />This scheme uses a first fit algorithm and, unlike scheme 2, does combine adjacent free memory blocks into a single large block (it does include a coalescence algorithm).<br /><br />Scheme 5:<br />This scheme allows the heap to be defined across multiple non-contigous blocks and combines (coalescences) adjacent memory blocks as they are freed. vPortDefineHeapRegions() ***must*** be called before pvPortMalloc().<br /><br />
 There are 5 options:<br />
 <ul>
-  <li><u>Scheme 1</u>: This is the simplest scheme of all. It does not permit memory to be freed once it has been allocated, but despite this is suitable for a surprisingly large number of applications.</li>
-  <li><u>Scheme 2</u>: This scheme uses a best fit algorithm and, unlike scheme 1, allows previously allocated blocks to be freed. It does not however combine adjacent free blocks into a single large block.</li>
-  <li><u>Scheme 3</u>: This is just a wrapper for the standard malloc() and free() functions. It makes them thread safe.</li>
-  <li><u>Scheme 4</u>: This scheme includes memory block coalescence.</li>
-  <li><u>Scheme 5</u>: A sample implementation of pvPortMalloc() that allows the heap to be defined across multiple non-contigous blocks and combines (coalescences) adjacent memory blocks as they are freed.</li>
+  <li><u>Scheme 1: alloc only</u>: This is the simplest scheme of all. It does not permit memory to be freed once it has been allocated, but despite this is suitable for a surprisingly large number of applications.</li>
+  <li><u>Scheme 2: no merge</u>: This scheme uses a best fit algorithm and, unlike scheme 1, allows previously allocated blocks to be freed. It does not however combine adjacent free blocks into a single large block.</li>
+  <li><u>Scheme 3: malloc/free</u>: This is just a wrapper for the standard malloc() and free() functions. It makes them thread safe.</li>
+  <li><u>Scheme 4: merge free blocks</u>: This scheme includes memory block coalescence.</li>
+  <li><u>Scheme 5: multiple regions</u>: This scheme allows the heap to be defined across multiple non-contigous blocks and combines (coalescences) adjacent memory blocks as they are freed. vPortDefineHeapRegions() ***must*** be called before pvPortMalloc().</li>
 </ul><br />
 
   </li>
@@ -769,13 +799,79 @@ The following items are available only if the group is enabled (the value is "En
   </li>
   <li>
   <a name="TotalHeapSize">
-  <b>Total Heap Size</b></a> - The total amount of RAM available to the kernel. This value is used by the memory allocation schemes.
+  <b>Total Heap Size</b></a> - The total amount of RAM available to the kernel. This value is used by the memory allocation schemes. Value not used if using Scheme3 (malloc/free).
+  </li>
+</ul>
+</li>
+<li>
+<a name="RTOSAdaptorGrp">
+<b>RTOS Adaptor</b></a> - Contains the RTOS specific settings. RTOS adaptor is a part of RTOS component which handles the integration of HAL into specific RTOS.
+<ul>
+  <li>
+  <a name="MemoryAllocationGroup">
+  <b>Memory allocation</b></a> - Definition of the RTOS API which provides the memory allocation functionality for HAL driver code.
+  <ul>
+    <li>
+    <a name="hasUserMallocFun">
+    <b>User function for memory allocation</b></a> - The memory allocation function should allocate the specified number of bytes of memory and return the address of the allocated space. The allocated memory area type should be suitable for usage by RTOS component. If there is an error, it should return NULL pointer.<br />
+The following items are available only if the group is enabled (the value is "yes"):<br />
+
+    <ul>
+      <li>
+      <a name="userMallocFunName">
+      <b>User function name</b></a> - The name of the user function (see above for description).
+      </li>
+    </ul>
+    </li>
+    <li>
+    <a name="hasUserDeallocFun">
+    <b>User function for memory deallocation</b></a> - The memory deallocation function should free the memory area allocated by the memory allocation function. The function can be called only for areas allocated by a pair memory allocation function (see property hasUserMallocFun User function for memory allocation.<br />
+The following items are available only if the group is enabled (the value is "yes"):<br />
+
+    <ul>
+      <li>
+      <a name="userDeallocFunName">
+      <b>User function name</b></a> - The name of the user function (see above for description).
+      </li>
+    </ul>
+    </li>
+  </ul>
+  </li>
+  <li>
+  <a name="CriticalSectionGroup">
+  <b>Critical section</b></a> - Definition of the RTOS API which provides the critical section handling for HAL driver code.
+  <ul>
+    <li>
+    <a name="hasUserEnterCriticalFun">
+    <b>User function for entering critical section</b></a> - The open critical section function should introduce the code what cannot be interrupted by the ISRs. Such function can be also called from ISRs and/or within context where ISRs are already disabled. In this situation the function has no effect (except that the pair call to critical section close function will be also ignored - see property hasUserExitCriticalFun. The function has no parameters and returns no value.<br />
+The following items are available only if the group is enabled (the value is "yes"):<br />
+
+    <ul>
+      <li>
+      <a name="userEnterCriticalFunName">
+      <b>User function name</b></a> - The name of the user function (see above for description).
+      </li>
+    </ul>
+    </li>
+    <li>
+    <a name="hasUserExitCriticalFun">
+    <b>User function for exiting critical section</b></a> - The close critical section function should terminate the code what cannot be interrupted by the ISRs. Such function need always to have a pair open critical section call (see property hasUserEnterCriticalFun. If call to the pair open critical section was ignored, the respective close should be also ignored. The function has no parameters and returns no value.<br />
+The following items are available only if the group is enabled (the value is "yes"):<br />
+
+    <ul>
+      <li>
+      <a name="userExitCriticalFunName">
+      <b>User function name</b></a> - The name of the user function (see above for description).
+      </li>
+    </ul>
+    </li>
+  </ul>
   </li>
 </ul>
 </li>
 <li>
 <a name="ShellEnabled">
-<b>Shell</b></a> - If shell support shall be added or not<br />
+<b>Shell</b></a> - If shell support shall be added or not. If enabled, will enable 'Use Trace Facility' (configUSE_TRACE_FACILITY).<br />
 The following items are available only if the group is enabled (the value is "Enabled"):<br />
 
 <ul>

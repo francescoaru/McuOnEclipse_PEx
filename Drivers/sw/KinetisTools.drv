@@ -135,6 +135,12 @@ typedef enum {
 %else
 #error "Not a Kinetis!"
 %endif
+%if (%CPUDB_prph_has_feature(CPU,SDK_SUPPORT) = 'yes') %- TRUE/FALSE not defined for SDK projects
+#define %'ModuleName'%.IS_USING_KINETIS_SDK   1 /* 1: using Kinetis SDK, 0: not using Kinetis SDK */
+%else
+#define %'ModuleName'%.IS_USING_KINETIS_SDK   0 /* 1: using Kinetis SDK, 0: not using Kinetis SDK */
+%endif
+
 %-BW_CUSTOM_USERTYPE_END
 
 %-BW_DEFINITION_START
@@ -191,7 +197,6 @@ uint8_t %'ModuleName'%.%UIDtoString(const %'ModuleName'_UID *uid, uint8_t *buf, 
 
 %endif %- UIDtoString
 %-BW_METHOD_END UIDtoString
-%-************************************************************************************************************
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN GetKinetisFamilyString
 %ifdef GetKinetisFamilyString
@@ -292,6 +297,7 @@ static uint8_t PrintStatus(const %@Shell@'ModuleName'%.StdIOType *io)
 static uint8_t PrintHelp(const %@Shell@'ModuleName'%.StdIOType *io)
 {
   %@Shell@'ModuleName'%.SendHelpStr((unsigned char*)"%'ModuleName'", (unsigned char*)"Group of %'ModuleName' commands\r\n", io->stdOut);
+  %@Shell@'ModuleName'%.SendHelpStr((unsigned char*)"  reset", (unsigned char*)"Performs a software reset\r\n", io->stdOut);
   %@Shell@'ModuleName'%.SendHelpStr((unsigned char*)"  help|status", (unsigned char*)"Print help or status information\r\n", io->stdOut);
   return ERR_OK;
 }
@@ -304,8 +310,16 @@ static uint8_t PrintHelp(const %@Shell@'ModuleName'%.StdIOType *io)
 %include Common\KinetisToolsSoftwareReset.Inc
 void %'ModuleName'%.%SoftwareReset(void)
 {
-  /* generic way to request a reset from software for ARM Cortex */
+  /* Generic way to request a reset from software for ARM Cortex */
+  /* See https://community.freescale.com/thread/99740
+     To write to this register, you must write 0x5FA to the VECTKEY field, otherwise the processor ignores the write.
+     SYSRESETREQ will cause a system reset asynchronously, so need to wait afterwards.
+   */
+#if %'ModuleName'%.IS_USING_KINETIS_SDK
+  SCB->AIRCR = (0x5FA<<SCB_AIRCR_VECTKEY_Pos)|SCB_AIRCR_SYSRESETREQ_Msk;
+#else
   SCB_AIRCR = SCB_AIRCR_VECTKEY(0x5FA) | SCB_AIRCR_SYSRESETREQ_MASK;
+#endif
   for(;;) {
     /* wait until reset */
   }
@@ -326,6 +340,7 @@ void %'ModuleName'%.%SoftwareReset(void)
  */
 uint8_t %'ModuleName'%.%UIDGet(%'ModuleName'_UID *uid)
 {
+#ifdef SIM_UIDMH /* 80 bit UUID: SIM_UIDMH, SIM_UIDML and SIM_UIDL */
   uid->id[0] = (SIM_UIDMH>>8)&0xff;
   uid->id[1] = SIM_UIDMH&0xff;
   uid->id[2] = (SIM_UIDML>>24)&0xff;
@@ -336,6 +351,29 @@ uint8_t %'ModuleName'%.%UIDGet(%'ModuleName'_UID *uid)
   uid->id[7] = (SIM_UIDL>>16)&0xff;
   uid->id[8] = (SIM_UIDL>>8)&0xff;
   uid->id[9] = SIM_UIDL&0xff;
+#elif defined(SIM_UUIDMH) /* KE06Z: SIM_UUIDMH, SIM_UUIDML and SIM_UUIDL */
+  uid->id[0] = (SIM_UUIDMH>>8)&0xff;
+  uid->id[1] = SIM_UUIDMH&0xff;
+  uid->id[2] = (SIM_UUIDML>>24)&0xff;
+  uid->id[3] = (SIM_UUIDML>>16)&0xff;
+  uid->id[4] = (SIM_UUIDML>>8)&0xff;
+  uid->id[5] = SIM_UUIDML&0xff;
+  uid->id[6] = (SIM_UUIDL>>24)&0xff;
+  uid->id[7] = (SIM_UUIDL>>16)&0xff;
+  uid->id[8] = (SIM_UUIDL>>8)&0xff;
+  uid->id[9] = SIM_UUIDL&0xff;
+#else /* some devices like the KE02Z only have 64bit UUID: only SIM_UUIDH and SIM_UUIDL */
+  uid->id[0] = 0;
+  uid->id[1] = 0;
+  uid->id[2] = (SIM_UUIDH>>24)&0xff;
+  uid->id[3] = (SIM_UUIDH>>16)&0xff;
+  uid->id[4] = (SIM_UUIDH>>8)&0xff;
+  uid->id[5] = SIM_UUIDH&0xff;
+  uid->id[6] = (SIM_UUIDL>>24)&0xff;
+  uid->id[7] = (SIM_UUIDL>>16)&0xff;
+  uid->id[8] = (SIM_UUIDL>>8)&0xff;
+  uid->id[9] = SIM_UUIDL&0xff;
+#endif
   return ERR_OK;
 }
 
@@ -410,7 +448,7 @@ uint8_t %'ModuleName'%.%UIDtoString(const %'ModuleName'_UID *uid, uint8_t *buf, 
 %include Common\KinetisToolsParseCommand.Inc
 uint8_t %'ModuleName'%.%ParseCommand(const unsigned char* cmd, bool *handled, const %@Shell@'ModuleName'%.StdIOType *io)
 {
-  byte res = ERR_OK;
+  uint8_t res = ERR_OK;
 
   if (%@Utility@'ModuleName'%.strcmp((char*)cmd, %@Shell@'ModuleName'%.CMD_HELP) == 0
     || %@Utility@'ModuleName'%.strcmp((char*)cmd, "%'ModuleName' help") == 0) {
@@ -422,13 +460,15 @@ uint8_t %'ModuleName'%.%ParseCommand(const unsigned char* cmd, bool *handled, co
   {
     *handled = TRUE;
     res = PrintStatus(io);
+  } else if (%@Utility@'ModuleName'%.strcmp((char*)cmd, "%'ModuleName' reset") == 0) {
+    *handled = TRUE;
+    %'ModuleName'%.%SoftwareReset(); /* will perform RESET and does NOT return here! */
   }
   return res;
 }
 
 %endif %- ParseCommand
 %-BW_METHOD_END ParseCommand
-%-************************************************************************************************************
 %-************************************************************************************************************
 %-BW_METHOD_BEGIN GetKinetisFamilyString
 %ifdef GetKinetisFamilyString
@@ -437,10 +477,17 @@ uint8_t %'ModuleName'%.%ParseCommand(const unsigned char* cmd, bool *handled, co
 %'ModuleName'_ConstCharPtr %'ModuleName'%.%GetKinetisFamilyString(void)
 {
 #if %'ModuleName'%.CPU_IS_M0_PLUS
+#ifdef SIM_SDID /* normal Kinetis define this */
   int32_t val;
 
   val = (SIM_SDID>>28)&0x3; /* bits 30..28 */
   return KinetisM0FamilyStrings[val];
+#elif defined(SIM_SRSID_FAMID) /* MKE02Z4 defines this, hopefully all other KE too... */
+  return "KE0x Family"; /* 0000 only KE0x supported */
+#else
+  #error "Unknown architecture!"
+  return "ERROR";
+#endif
 #elif %'ModuleName'%.CPU_IS_M4
   int32_t val;
 

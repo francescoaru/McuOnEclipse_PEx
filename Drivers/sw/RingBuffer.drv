@@ -64,34 +64,31 @@
 #define __%'ModuleName'_H
 
 /* MODULE %ModuleName. */
-
-%ifdef SharedModules
-/* Include shared modules, which are used for whole project */
-  %for var from IncludeSharedModules
-#include "%'var'.h"
-  %endfor
-%endif
-/* Include inherited beans */
 %ifdef InhrSymbolList
   %for var from InhrSymbolList
 #include "%@%var@ModuleName.h"
   %endfor
 %endif
+
+#if %@sdk@'ModuleName'%.SDK_VERSION_USED == %@sdk@'ModuleName'%.SDK_VERSION_NONE
+%ifdef SharedModules
+/* Include shared modules, which are used for whole project */
+  %for var from IncludeSharedModules
+  #include "%'var'.h"
+  %endfor
+%endif
+/* Include inherited beans */
 %-BW_CUSTOM_INCLUDE_START_H
 %- Write your own includes here ...
 %-   Example:
 %-     #include "header_name.h"
-%if (%CPUDB_prph_has_feature(CPU,SDK_SUPPORT) = 'yes') %- TRUE/FALSE not defined for SDK projects
-#include "PE_KSDK_Types.h" /* if this file is missing: have you added the Kinetis SDK component? */
-%endif
 %-
 %-BW_CUSTOM_INCLUDE_END_H
 %-
 %-BW_METHOD_MACROS_START
 %-BW_METHOD_MACROS_END
-
-#include "%ProcessorModule.h"
-
+  #include "%ProcessorModule.h"
+#endif
 %-STARTUSERTYPES - Do not make changes between lines (included this lines) marked with %-STARTUSERTYPES and %-ENDUSRTYPES
 
 %-ENDUSRTYPES
@@ -181,6 +178,58 @@ void %'ModuleName'%.%Clear(void);
 
 %endif %- Clear
 %-BW_METHOD_END Clear
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Peek
+%ifdef Peek
+uint8_t %'ModuleName'%.%Peek(%'ModuleName'_BufSizeType index, %'ModuleName'_ElementType *elemP);
+%define! Parindex
+%define! ParelemP
+%define! RetVal
+%include Common\RingBufferPeek.Inc
+
+%endif %- Peek
+%-BW_METHOD_END Peek
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Deinit
+%ifdef Deinit
+#define %'ModuleName'%.%Deinit() \
+   /* nothing to deinitialize */
+%include Common\RingBufferDeinit.Inc
+
+%endif %- Deinit
+%-BW_METHOD_END Deinit
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Delete
+%ifdef Delete
+uint8_t %'ModuleName'%.%Delete(void);
+%define! RetVal
+%include Common\RingBufferDelete.Inc
+
+%endif %- Delete
+%-BW_METHOD_END Delete
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Putn
+%ifdef Putn
+uint8_t %'ModuleName'%.%Putn(%'ModuleName'_ElementType *elem, %'ModuleName'_BufSizeType nof);
+%define! Parelem
+%define! Parnof
+%define! RetVal
+%include Common\RingBufferPutn.Inc
+
+%endif %- Putn
+%-BW_METHOD_END Putn
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Compare
+%ifdef Compare
+uint8_t %'ModuleName'%.%Compare(%'ModuleName'_BufSizeType index, %'ModuleName'_ElementType *elemP, %'ModuleName'_BufSizeType nof);
+%define! Parindex
+%define! ParelemP
+%define! Parnof
+%define! RetVal
+%include Common\RingBufferCompare.Inc
+
+%endif %- Compare
+%-BW_METHOD_END Compare
 %-BW_DEFINITION_END
 /* END %ModuleName. */
 
@@ -311,6 +360,29 @@ uint8_t %'ModuleName'%.%Put(%'ModuleName'_ElementType elem)
 %endif %- Put
 %-BW_METHOD_END Put
 %-************************************************************************************************************
+%-BW_METHOD_BEGIN Putn
+%ifdef Putn
+%define! Parelem
+%define! Parnof
+%define! RetVal
+%include Common\RingBufferPutn.Inc
+uint8_t %'ModuleName'%.%Putn(%'ModuleName'_ElementType *elem, %'ModuleName'_BufSizeType nof)
+{
+  uint8_t res = ERR_OK;
+
+  while(nof>0) {
+    res = %'ModuleName'%.%Put(*elem);
+    if (res!=ERR_OK) {
+      break;
+    }
+    elem++; nof--;
+  }
+  return res;
+}
+
+%endif %- Putn
+%-BW_METHOD_END Putn
+%-************************************************************************************************************
 %-BW_METHOD_BEGIN Get
 %ifdef Get
 %define! ParelemP
@@ -401,6 +473,109 @@ void %'ModuleName'%.%Clear(void)
 
 %endif %- Clear
 %-BW_METHOD_END Clear
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Peek
+%ifdef Peek
+%define! Parindex
+%define! ParelemP
+%define! RetVal
+%include Common\RingBufferPeek.Inc
+uint8_t %'ModuleName'%.%Peek(%'ModuleName'_BufSizeType index, %'ModuleName'_ElementType *elemP)
+{
+  uint8_t res = ERR_OK;
+  int idx; /* index inside ring buffer */
+  %'ModuleName'%.DEFINE_CRITICAL();
+
+  %'ModuleName'%.ENTER_CRITICAL();
+  if (index>=%'ModuleName'%.BUF_SIZE) {
+    res = ERR_OVERFLOW; /* asking for an element outside of ring buffer size */
+  } else if (index<%'ModuleName'%.inSize) {
+    idx = (%'ModuleName'%.outIdx+index)%%%'ModuleName'%.BUF_SIZE;
+    *elemP = %'ModuleName'%.buffer[idx];
+  } else { /* asking for an element which does not exist */
+    res = ERR_RXEMPTY;
+  }
+  %'ModuleName'%.EXIT_CRITICAL();
+  return res;
+}
+
+%endif %- Peek
+%-BW_METHOD_END Peek
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Compare
+%ifdef Compare
+%define! Parindex
+%define! ParelemP
+%define! Parnof
+%define! RetVal
+%include Common\RingBufferCompare.Inc
+uint8_t %'ModuleName'%.%Compare(%'ModuleName'_BufSizeType index, %'ModuleName'_ElementType *elemP, %'ModuleName'_BufSizeType nof)
+{
+  uint8_t cmpResult = 0;
+  uint8_t res;
+  %'ModuleName'_ElementType val;
+
+  while(nof>0) {
+    res = %'ModuleName'%.%Peek(index, &val);
+    if (res!=ERR_OK) { /* general failure? */
+      cmpResult = (uint8_t)-1; /* no match */
+      break;
+    }
+    if (val!=*elemP) { /* mismatch */
+      cmpResult = (uint8_t)-1; /* no match */
+      break;
+    }
+    elemP++; index++; nof--;
+  }
+
+  return cmpResult;
+}
+
+%endif %- Compare
+%-BW_METHOD_END Compare
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Deinit
+%ifdef Deinit
+%include Common\RingBufferDeinit.Inc
+/**
+void %'ModuleName'%.%Deinit(void)
+{
+  ** Function is implemented as macro in the header file
+}
+*/
+%endif %- Deinit
+%-BW_METHOD_END Deinit
+%-************************************************************************************************************
+%-BW_METHOD_BEGIN Delete
+%ifdef Delete
+%define! RetVal
+%include Common\RingBufferDelete.Inc
+uint8_t %'ModuleName'%.%Delete(void)
+{
+  uint8_t res = ERR_OK;
+  %'ModuleName'%.DEFINE_CRITICAL();
+
+  %'ModuleName'%.ENTER_CRITICAL();
+  if (%'ModuleName'%.inSize==0) {
+    res = ERR_RXEMPTY;
+  } else {
+    %'ModuleName'%.inSize--;
+    %'ModuleName'%.outIdx++;
+    if (%'ModuleName'%.outIdx==%'ModuleName'%.BUF_SIZE) {
+      %'ModuleName'%.outIdx = 0;
+    }
+  }
+  %'ModuleName'%.EXIT_CRITICAL();
+%if defined(OnBufferEmpty)
+  if (res==ERR_RXEMPTY) {
+    %OnBufferEmpty(); /* call user event */
+  }
+%endif
+  return res;
+}
+
+%endif %- Delete
+%-BW_METHOD_END Delete
 %-BW_IMPLEMENT_END
 /* END %ModuleName. */
 
