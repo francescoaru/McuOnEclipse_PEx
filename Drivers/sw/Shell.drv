@@ -774,10 +774,6 @@ bool %'ModuleName'%.%IsHistoryCharacter(byte ch, byte *cmdBuf, size_t cmdBufIdx,
 {
   *isPrev = FALSE;
 #if %'ModuleName'%.HISTORY_ENABLED
-  if (   cmdBufIdx==0 /* first character on command line */
-      || (%@Utility@'ModuleName'%.strcmp(cmdBuf, %'ModuleName'_history[%'ModuleName'_history_index])==0) /* pressing prev/next character on previous history element */
-      )
-  {
     if (ch==%'ModuleName'%.HISTORY_PREV_CHAR) {
       *isPrev = TRUE;
       return TRUE;
@@ -785,26 +781,6 @@ bool %'ModuleName'%.%IsHistoryCharacter(byte ch, byte *cmdBuf, size_t cmdBufIdx,
       *isPrev = FALSE;
       return TRUE;
     }
-  }
-#if 0
-  if (cmdBufIdx==0 || cmdBufIdx==2) { /* accept only first character or sequence as history sequence */
-    if (cmdBufIdx==2 && cmdBuf[0]==0x1b && cmdBuf[1]==0x5b) {
-      /* up:    0x27 0x5b 0x41
-       * down:  0x27 0x5b 0x42
-       * right: 0x27 0x5b 0x43
-       * left:  0x27 0x5b 0x44
-       */
-      if (cmdBuf[2]==0x41 /* up */ || cmdBuf[2]==0x44 /* left */) {
-        *isPrev = TRUE;
-        return TRUE;
-      } else if (cmdBuf[2]==0x42 /* down */ || cmdBuf[2]==0x43 /* right */) {
-        *isPrev = FALSE;
-        return TRUE;
-      }
-    }
-    /* \todo: handle TAB and SHIFT-TAB */
-  }
-#endif
 #endif
   return FALSE;
 }

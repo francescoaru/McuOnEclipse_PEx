@@ -318,7 +318,7 @@ uint8_t %'ModuleName'%.SendDataBlock(uint8_t *data, uint16_t dataSize);
 %ifdef Deinit
 uint8_t %'ModuleName'%.%Deinit(void);
 %define! RetVal
-%include Common\FSL_USB_CDC_DeviceDeinit.Inc
+%include Common\FSL_USB_CDC_DeviceDeInit.Inc
 
 %endif %- Deinit
 %-BW_METHOD_END Deinit
@@ -749,7 +749,7 @@ uint8_t %'ModuleName'%.%App_Task(uint8_t *txBuf, size_t txBufSize)
 %-BW_METHOD_BEGIN Deinit
 %ifdef Deinit
 %define! RetVal
-%include Common\FSL_USB_CDC_DeviceDeinit.Inc
+%include Common\FSL_USB_CDC_DeviceDeInit.Inc
 uint8_t %'ModuleName'%.%Deinit(void)
 {
   uint_8 err;
